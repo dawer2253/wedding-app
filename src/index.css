@@ -1,1 +1,21 @@
 @import "tailwindcss";
+
+@layer base {
+   html {
+      @apply bg-slate-50 text-slate-900;
+   }
+   body {
+      @apply min-h-screen antialiased;
+   }
+
+   /* Domyślny rozmiar/styl nagłówków - inaczej Tailwind je "wyzeruje" */
+   h1 {
+      @apply text-4xl font-bold;
+   }
+   h2 {
+      @apply text-3xl font-semibold;
+   }
+   h3 {
+      @apply text-2xl font-semibold;
+   }
+}
