@@ -1,12 +1,8 @@
-import Test from "./Test";
+import { RouterProvider } from "react-router-dom";
+import { router } from "./routes/router";
 
 function App() {
-   return (
-      <>
-         <div className="bg-blue-500 text-white p-4">Hello tailwind v4</div>
-         <Test />
-      </>
-   );
+   return <RouterProvider router={router} />;
 }
 
 export default App;
