@@ -1,5 +1,16 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, Navigate } from "react-router-dom";
+import { useAppSelector } from "@/app/hooks";
 
 export default function ProtectedLayout() {
-   return <Outlet />;
+   const user = useAppSelector((state) => state.auth.user);
+
+   if (!user) {
+      return <Navigate to="/login" replace />;
+   }
+
+   return (
+      <>
+         <Outlet />
+      </>
+   );
 }

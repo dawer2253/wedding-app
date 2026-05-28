@@ -47,6 +47,7 @@ export const signOut = createAsyncThunk(
       if (error) {
          return rejectWithValue(error.message);
       }
+      console.log("siema");
       return null;
    },
 );

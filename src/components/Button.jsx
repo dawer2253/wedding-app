@@ -22,6 +22,7 @@ export default function Button({
          className={`${baseClass} ${variants[variant]} ${disabled ? disabledClasses : ""}`}
          {...props}
       >
+         {disabled && <LoadingSpinner size={16} />}
          {children}
       </button>
    );
