@@ -5,7 +5,7 @@ import LoginPage from "@/features/auth/pages/LoginPage";
 import SignupPage from "@/features/auth/pages/SignupPage";
 import ResetPasswordPage from "@/features/auth/pages/ResetPasswordPage";
 import ProtectedLayout from "./ProtectedLayout";
-import OnboardingPage from "@/features/auth/pages/OnboardingPage";
+import OnboardingPage from "@/features/wedding/pages/OnboardingPage";
 import WeddingSettingsPage from "@/features/wedding/pages/WeddingSettingsPage";
 import GuestListPage from "@/features/guests/pages/GuestListPage";
 import GuestNewPage from "@/features/guests/pages/GuestNewPage";
