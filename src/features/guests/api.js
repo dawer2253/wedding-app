@@ -27,7 +27,9 @@ export const addGuest = createAsyncThunk(
       );
       const { data, error } = await supabase
          .from("guests")
-         .insert(mapGuestToDb({ ...guest, sortOrder: maxSortOrder + 1 }))
+         .insert(
+            mapGuestToDb({ group: "", ...guest, sortOrder: maxSortOrder + 1 }),
+         )
          .select()
          .single();
       if (error) return rejectWithValue(error.message);
