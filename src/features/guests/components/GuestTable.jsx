@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -83,35 +83,12 @@ function PhoneCell({ guest }) {
    );
 }
 
-// memo: klik w checkbox/status przerysowuje tylko ten jeden wiersz,
-// nie całą tabelę (przy ~120 gościach różnica jest odczuwalna)
-const GuestRow = memo(function GuestRow({ guest, onDelete }) {
-   const {
-      attributes,
-      listeners,
-      setNodeRef,
-      transform,
-      transition,
-      isDragging,
-   } = useSortable({ id: guest.id });
-
+// Ciężka zawartość wiersza (Radixowe checkboxy, dropdown, input) — memo
+// na guest/onDelete, więc NIE przerysowuje się podczas przeciągania,
+// gdy zmieniają się tylko transformacje sortable
+const GuestRowContent = memo(function GuestRowContent({ guest, onDelete }) {
    return (
-      <TableRow
-         ref={setNodeRef}
-         style={{ transform: CSS.Translate.toString(transform), transition }}
-         className={isDragging ? "relative z-10 bg-muted" : undefined}
-      >
-         <TableCell className="py-1">
-            <button
-               type="button"
-               {...attributes}
-               {...listeners}
-               aria-label="Zmień kolejność"
-               className="flex cursor-grab items-center justify-center rounded text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 active:cursor-grabbing"
-            >
-               <GripVertical className="size-4" />
-            </button>
-         </TableCell>
+      <>
          <TableCell className="truncate py-1 font-medium">
             {guest.firstName} {guest.lastName}
             {guest.hasPlusOne && guest.plusOneName && (
@@ -162,6 +139,41 @@ const GuestRow = memo(function GuestRow({ guest, onDelete }) {
                </Button>
             </div>
          </TableCell>
+      </>
+   );
+});
+
+// Lekka "skorupa" sortable: tylko <tr>, transformacja i uchwyt.
+// Re-rendery wywoływane przez dnd-kit w trakcie przeciągania kosztują
+// tyle co jeden tr + button — komórki wyżej są odcięte przez memo
+const GuestRow = memo(function GuestRow({ guest, onDelete }) {
+   const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+   } = useSortable({ id: guest.id });
+
+   return (
+      <TableRow
+         ref={setNodeRef}
+         style={{ transform: CSS.Translate.toString(transform), transition }}
+         className={isDragging ? "relative z-10 bg-muted" : undefined}
+      >
+         <TableCell className="py-1">
+            <button
+               type="button"
+               {...attributes}
+               {...listeners}
+               aria-label="Zmień kolejność"
+               className="flex cursor-grab items-center justify-center rounded text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 active:cursor-grabbing"
+            >
+               <GripVertical className="size-4" />
+            </button>
+         </TableCell>
+         <GuestRowContent guest={guest} onDelete={onDelete} />
       </TableRow>
    );
 });
@@ -170,6 +182,16 @@ export default function GuestTable({ guests, onDelete }) {
    const dispatch = useAppDispatch();
    const sensors = useSensors(
       useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+   );
+
+   // Stabilna tożsamość listy id: nowa tablica powstaje tylko gdy zmieni się
+   // kolejność/skład, a nie przy każdej edycji pola gościa. Bez tego
+   // SortableContext dostawał nową wartość przy każdym kliknięciu i wymuszał
+   // re-render wszystkich wierszy z pominięciem memo.
+   const itemIdsKey = guests.map((g) => g.id).join("\n");
+   const itemIds = useMemo(
+      () => (itemIdsKey ? itemIdsKey.split("\n") : []),
+      [itemIdsKey],
    );
 
    // zapis kolejności "ułamkowo": nowa pozycja dostaje wartość między
@@ -221,7 +243,7 @@ export default function GuestTable({ guests, onDelete }) {
                </TableHeader>
                <TableBody>
                   <SortableContext
-                     items={guests.map((g) => g.id)}
+                     items={itemIds}
                      strategy={verticalListSortingStrategy}
                   >
                      {guests.map((guest) => (
