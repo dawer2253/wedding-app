@@ -1,6 +1,7 @@
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import {
    DndContext,
    PointerSensor,
@@ -19,7 +20,6 @@ import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import {
    Table,
@@ -269,8 +269,7 @@ function QuickAddRow() {
    );
 }
 
-const INITIAL_ROWS = 30;
-const ROWS_PER_CHUNK = 60;
+const ESTIMATED_ROW_HEIGHT = 37;
 
 export default function GuestTable({ guests, allGuests, onDelete }) {
    const dispatch = useAppDispatch();
@@ -278,33 +277,33 @@ export default function GuestTable({ guests, allGuests, onDelete }) {
       useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
    );
 
-   // Progresywny render: mount pokazuje pierwsze wiersze od razu, reszta
-   // dokłada się w porcjach w kolejnych klatkach. Bez tego wejście w zakładkę
-   // blokowało UI na czas synchronicznego renderu ~120 ciężkich wierszy.
-   const [visibleCount, setVisibleCount] = useState(INITIAL_ROWS);
-   useEffect(() => {
-      if (visibleCount >= guests.length) return;
-      const timeout = setTimeout(
-         () => setVisibleCount((count) => count + ROWS_PER_CHUNK),
-         16,
-      );
-      return () => clearTimeout(timeout);
-   }, [visibleCount, guests.length]);
-   const visibleGuests = guests.slice(0, visibleCount);
+   // Wirtualizacja: tabela ma własny scroll (max ~70vh, sticky nagłówek),
+   // a w DOM istnieje tylko ~20-30 wierszy widocznych w oknie (+ zapas) —
+   // wysokość reszty utrzymują wiersze dystansowe. Mount i każdy re-render
+   // kosztują tyle samo przy 100 i przy 1000 gości.
+   const wrapperRef = useRef(null);
+   const virtualizer = useVirtualizer({
+      count: guests.length,
+      getScrollElement: () => wrapperRef.current,
+      estimateSize: () => ESTIMATED_ROW_HEIGHT,
+      overscan: 10,
+   });
+   const virtualItems = virtualizer.getVirtualItems();
+   const paddingTop = virtualItems.length ? virtualItems[0].start : 0;
+   const paddingBottom = virtualItems.length
+      ? virtualizer.getTotalSize() - virtualItems[virtualItems.length - 1].end
+      : 0;
+   const visibleGuests = virtualItems.map((item) => guests[item.index]);
 
    // Stabilna tożsamość listy id: nowa tablica powstaje tylko gdy zmieni się
    // kolejność/skład, a nie przy każdej edycji pola gościa. Bez tego
    // SortableContext dostawał nową wartość przy każdym kliknięciu i wymuszał
    // re-render wszystkich wierszy z pominięciem memo.
    const itemIdsKey = visibleGuests.map((g) => g.id).join("\n");
-   /* eslint-disable react-hooks/preserve-manual-memoization -- memoizacja po
-      kluczu treści jest celowa (patrz komentarz wyżej); React Compiler i tak
-      nie działa w buildzie tego projektu */
    const itemIds = useMemo(
       () => (itemIdsKey ? itemIdsKey.split("\n") : []),
       [itemIdsKey],
    );
-   /* eslint-enable react-hooks/preserve-manual-memoization */
 
    // Zapis kolejności "ułamkowo": przeciągnięty gość dostaje wartość między
    // celem a jego PRAWDZIWYM sąsiadem z pełnej listy (allGuests) — jeden
@@ -340,14 +339,17 @@ export default function GuestTable({ guests, allGuests, onDelete }) {
    }
 
    return (
-      <div className="overflow-x-auto rounded-xl ring-1 ring-foreground/10">
+      <div
+         ref={wrapperRef}
+         className="max-h-[70vh] overflow-auto rounded-xl ring-1 ring-foreground/10"
+      >
          <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
          >
             <Table className="w-full table-fixed">
-               <TableHeader>
+               <TableHeader className="sticky top-0 z-10 bg-background">
                   <TableRow>
                      <TableHead className="w-8" />
                      <TableHead className="w-[22%]">Gość</TableHead>
@@ -364,6 +366,9 @@ export default function GuestTable({ guests, allGuests, onDelete }) {
                   </TableRow>
                </TableHeader>
                <TableBody>
+                  {paddingTop > 0 && (
+                     <tr aria-hidden="true" style={{ height: paddingTop }} />
+                  )}
                   <SortableContext
                      items={itemIds}
                      strategy={verticalListSortingStrategy}
@@ -376,15 +381,8 @@ export default function GuestTable({ guests, allGuests, onDelete }) {
                         />
                      ))}
                   </SortableContext>
-                  {visibleCount < guests.length && (
-                     <TableRow>
-                        <TableCell colSpan={8} className="py-2">
-                           <div className="space-y-2">
-                              <Skeleton className="h-5 w-full" />
-                              <Skeleton className="h-5 w-full" />
-                           </div>
-                        </TableCell>
-                     </TableRow>
+                  {paddingBottom > 0 && (
+                     <tr aria-hidden="true" style={{ height: paddingBottom }} />
                   )}
                   <QuickAddRow />
                </TableBody>
