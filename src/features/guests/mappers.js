@@ -13,6 +13,7 @@ export const mapGuestFromDb = (row) => ({
    email: row.email ?? "",
    tableNumber: row.table_number,
    notes: row.notes ?? "",
+   sortOrder: row.sort_order,
    createdAt: row.created_at,
    updatedAt: row.updated_at,
 });
@@ -31,6 +32,7 @@ const FIELD_TO_COLUMN = {
    email: "email",
    tableNumber: "table_number",
    notes: "notes",
+   sortOrder: "sort_order",
 };
 
 // Mapuje tylko obecne pola (działa też dla częściowego patcha w updateGuest).

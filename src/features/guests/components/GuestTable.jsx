@@ -1,7 +1,21 @@
 import { memo } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Pencil, Trash2 } from "lucide-react";
+import {
+   DndContext,
+   PointerSensor,
+   closestCenter,
+   useSensor,
+   useSensors,
+} from "@dnd-kit/core";
+import {
+   SortableContext,
+   arrayMove,
+   useSortable,
+   verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical, Pencil, Trash2 } from "lucide-react";
 import { useAppDispatch } from "@/app/hooks";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -72,8 +86,32 @@ function PhoneCell({ guest }) {
 // memo: klik w checkbox/status przerysowuje tylko ten jeden wiersz,
 // nie całą tabelę (przy ~120 gościach różnica jest odczuwalna)
 const GuestRow = memo(function GuestRow({ guest, onDelete }) {
+   const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+   } = useSortable({ id: guest.id });
+
    return (
-      <TableRow>
+      <TableRow
+         ref={setNodeRef}
+         style={{ transform: CSS.Translate.toString(transform), transition }}
+         className={isDragging ? "relative z-10 bg-muted" : undefined}
+      >
+         <TableCell className="py-1">
+            <button
+               type="button"
+               {...attributes}
+               {...listeners}
+               aria-label="Zmień kolejność"
+               className="flex cursor-grab items-center justify-center rounded text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 active:cursor-grabbing"
+            >
+               <GripVertical className="size-4" />
+            </button>
+         </TableCell>
          <TableCell className="truncate py-1 font-medium">
             {guest.firstName} {guest.lastName}
             {guest.hasPlusOne && guest.plusOneName && (
@@ -129,26 +167,74 @@ const GuestRow = memo(function GuestRow({ guest, onDelete }) {
 });
 
 export default function GuestTable({ guests, onDelete }) {
+   const dispatch = useAppDispatch();
+   const sensors = useSensors(
+      useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+   );
+
+   // zapis kolejności "ułamkowo": nowa pozycja dostaje wartość między
+   // sąsiadami — jeden UPDATE zamiast przenumerowania całej listy
+   function handleDragEnd({ active, over }) {
+      if (!over || active.id === over.id) return;
+      const oldIndex = guests.findIndex((g) => g.id === active.id);
+      const newIndex = guests.findIndex((g) => g.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const moved = arrayMove(guests, oldIndex, newIndex);
+      const prev = moved[newIndex - 1]?.sortOrder ?? null;
+      const next = moved[newIndex + 1]?.sortOrder ?? null;
+
+      let sortOrder;
+      if (prev == null && next == null) return;
+      if (prev == null) sortOrder = next - 1;
+      else if (next == null) sortOrder = prev + 1;
+      else sortOrder = (prev + next) / 2;
+
+      dispatch(updateGuest({ id: active.id, changes: { sortOrder } }))
+         .unwrap()
+         .catch((err) => toast.error(err));
+   }
+
    return (
       <div className="overflow-x-auto rounded-xl ring-1 ring-foreground/10">
-         <Table className="w-full table-fixed">
-            <TableHeader>
-               <TableRow>
-                  <TableHead className="w-[24%]">Gość</TableHead>
-                  <TableHead className="w-[14%]">Grupa</TableHead>
-                  <TableHead className="w-[9%] text-center">Os. tow.</TableHead>
-                  <TableHead className="w-[9%] text-center">Dziecko</TableHead>
-                  <TableHead className="w-[18%]">Telefon</TableHead>
-                  <TableHead className="w-[15%]">Status</TableHead>
-                  <TableHead className="w-[11%] text-right">Akcje</TableHead>
-               </TableRow>
-            </TableHeader>
-            <TableBody>
-               {guests.map((guest) => (
-                  <GuestRow key={guest.id} guest={guest} onDelete={onDelete} />
-               ))}
-            </TableBody>
-         </Table>
+         <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+         >
+            <Table className="w-full table-fixed">
+               <TableHeader>
+                  <TableRow>
+                     <TableHead className="w-8" />
+                     <TableHead className="w-[22%]">Gość</TableHead>
+                     <TableHead className="w-[13%]">Grupa</TableHead>
+                     <TableHead className="w-[8%] text-center">
+                        Os. tow.
+                     </TableHead>
+                     <TableHead className="w-[8%] text-center">
+                        Dziecko
+                     </TableHead>
+                     <TableHead className="w-[17%]">Telefon</TableHead>
+                     <TableHead className="w-[14%]">Status</TableHead>
+                     <TableHead className="w-[10%] text-right">Akcje</TableHead>
+                  </TableRow>
+               </TableHeader>
+               <TableBody>
+                  <SortableContext
+                     items={guests.map((g) => g.id)}
+                     strategy={verticalListSortingStrategy}
+                  >
+                     {guests.map((guest) => (
+                        <GuestRow
+                           key={guest.id}
+                           guest={guest}
+                           onDelete={onDelete}
+                        />
+                     ))}
+                  </SortableContext>
+               </TableBody>
+            </Table>
+         </DndContext>
       </div>
    );
 }

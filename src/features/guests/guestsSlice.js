@@ -43,7 +43,7 @@ const guestsSlice = createSlice({
          .addCase(addGuest.fulfilled, (state, action) => {
             const guest = action.payload;
             if (!state.items[guest.id]) {
-               state.ids.unshift(guest.id);
+               state.ids.push(guest.id);
             }
             state.items[guest.id] = guest;
          })

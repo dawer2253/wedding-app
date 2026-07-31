@@ -5,7 +5,15 @@ const selectIds = (state) => state.guests.ids;
 
 export const selectAllGuests = createSelector(
    [selectItems, selectIds],
-   (items, ids) => ids.map((id) => items[id]),
+   (items, ids) =>
+      ids
+         .map((id) => items[id])
+         .sort((a, b) => {
+            const orderA = a.sortOrder ?? Infinity;
+            const orderB = b.sortOrder ?? Infinity;
+            if (orderA !== orderB) return orderA - orderB;
+            return (a.createdAt ?? "").localeCompare(b.createdAt ?? "");
+         }),
 );
 
 export const selectGuestById = (state, id) => state.guests.items[id];
