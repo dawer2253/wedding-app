@@ -4,13 +4,17 @@ import { router } from "./routes/router";
 import { supabase } from "./lib/supabase";
 
 import { useAppDispatch, useAppSelector } from "./app/hooks";
-import LoadingSpinner from "./components/LoadingSpinner";
+import { Spinner } from "@/components/ui/spinner";
 import { initializeAuth } from "./features/auth/api";
 import { setSession } from "./features/auth/authSlice";
+import { fetchUserWedding } from "./features/wedding/api";
 
 function App() {
    const isLoading = useAppSelector((state) => state.auth.loading);
+   const user = useAppSelector((state) => state.auth.user);
+
    const dispatch = useAppDispatch();
+
    useEffect(() => {
       dispatch(initializeAuth());
       const {
@@ -22,12 +26,17 @@ function App() {
       return () => subscription.unsubscribe();
    }, [dispatch]);
 
+   useEffect(() => {
+      if (user) {
+         dispatch(fetchUserWedding());
+      }
+   }, [dispatch, user]);
+
    if (isLoading)
       return (
-         <LoadingSpinner
-            size={80}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-         />
+         <div className="flex min-h-screen items-center justify-center">
+            <Spinner className="size-10 text-primary" />
+         </div>
       );
 
    return <RouterProvider router={router} />;

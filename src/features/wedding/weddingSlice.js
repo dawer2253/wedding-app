@@ -4,7 +4,7 @@ import { fetchUserWedding, createWedding, joinWeddingByCode } from "./api";
 const initialState = {
    activeWedding: null,
    members: [],
-   loading: false,
+   loading: true,
    error: null,
 };
 
