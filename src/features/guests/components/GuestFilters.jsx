@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { LayoutGrid, List, Search } from "lucide-react";
+import { List, Search, Table } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { Input } from "@/components/ui/input";
 import {
@@ -76,11 +76,11 @@ export default function GuestFilters() {
             onValueChange={(value) => value && dispatch(setViewMode(value))}
             className="ml-auto"
          >
-            <ToggleGroupItem value="cards" aria-label="Widok kart">
-               <LayoutGrid />
+            <ToggleGroupItem value="list" aria-label="Widok listy">
+               <List />
             </ToggleGroupItem>
             <ToggleGroupItem value="table" aria-label="Widok tabeli">
-               <List />
+               <Table />
             </ToggleGroupItem>
          </ToggleGroup>
       </div>

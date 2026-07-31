@@ -2,26 +2,25 @@ import { Link } from "react-router-dom";
 import { Baby, Pencil, Trash2, UserPlus, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-   Card,
-   CardAction,
-   CardContent,
-   CardDescription,
-   CardHeader,
-   CardTitle,
-} from "@/components/ui/card";
+   Item,
+   ItemActions,
+   ItemContent,
+   ItemDescription,
+   ItemTitle,
+} from "@/components/ui/item";
 import GuestRsvpBadge from "./GuestRsvpBadge";
 
-export default function GuestCard({ guest, onDelete }) {
+export default function GuestListItem({ guest, onDelete }) {
    const hasMeta = guest.hasPlusOne || guest.isChild || guest.dietaryNotes;
 
    return (
-      <Card size="sm">
-         <CardHeader>
-            <CardTitle>
+      <Item variant="outline" size="sm" role="listitem">
+         <ItemContent>
+            <ItemTitle>
                {guest.firstName} {guest.lastName}
-            </CardTitle>
+            </ItemTitle>
             {hasMeta && (
-               <CardDescription className="flex flex-wrap items-center gap-x-3 gap-y-1">
+               <ItemDescription className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   {guest.hasPlusOne && (
                      <span className="flex items-center gap-1">
                         <UserPlus className="size-3.5" />
@@ -35,18 +34,16 @@ export default function GuestCard({ guest, onDelete }) {
                      </span>
                   )}
                   {guest.dietaryNotes && (
-                     <span className="flex max-w-full items-center gap-1">
+                     <span className="flex items-center gap-1">
                         <Utensils className="size-3.5 shrink-0" />
                         <span className="truncate">{guest.dietaryNotes}</span>
                      </span>
                   )}
-               </CardDescription>
+               </ItemDescription>
             )}
-            <CardAction>
-               <GuestRsvpBadge guest={guest} />
-            </CardAction>
-         </CardHeader>
-         <CardContent className="mt-auto flex items-center justify-end gap-1">
+         </ItemContent>
+         <ItemActions>
+            <GuestRsvpBadge guest={guest} />
             <Button asChild variant="ghost" size="icon-sm" aria-label="Edytuj">
                <Link to={`/guests/${guest.id}/edit`}>
                   <Pencil />
@@ -61,7 +58,7 @@ export default function GuestCard({ guest, onDelete }) {
             >
                <Trash2 />
             </Button>
-         </CardContent>
-      </Card>
+         </ItemActions>
+      </Item>
    );
 }

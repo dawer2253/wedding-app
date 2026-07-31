@@ -15,9 +15,10 @@ import {
    EmptyMedia,
    EmptyTitle,
 } from "@/components/ui/empty";
+import { ItemGroup } from "@/components/ui/item";
 import GuestStatsBar from "../components/GuestStatsBar";
 import GuestFilters from "../components/GuestFilters";
-import GuestCard from "../components/GuestCard";
+import GuestListItem from "../components/GuestListItem";
 import GuestTable from "../components/GuestTable";
 import { fetchGuests, removeGuest } from "../api";
 import {
@@ -85,9 +86,9 @@ export default function GuestListPage() {
                   <Skeleton key={i} className="h-18 rounded-xl" />
                ))}
             </div>
-            <div className="space-y-3">
-               {Array.from({ length: 4 }, (_, i) => (
-                  <Skeleton key={i} className="h-24 rounded-xl" />
+            <div className="space-y-2">
+               {Array.from({ length: 6 }, (_, i) => (
+                  <Skeleton key={i} className="h-14 rounded-lg" />
                ))}
             </div>
          </div>
@@ -157,15 +158,15 @@ export default function GuestListPage() {
                            ({section.guests.length})
                         </span>
                      </h3>
-                     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                     <ItemGroup className="gap-2">
                         {section.guests.map((guest) => (
-                           <GuestCard
+                           <GuestListItem
                               key={guest.id}
                               guest={guest}
                               onDelete={setGuestToDelete}
                            />
                         ))}
-                     </div>
+                     </ItemGroup>
                   </section>
                ))}
             </div>

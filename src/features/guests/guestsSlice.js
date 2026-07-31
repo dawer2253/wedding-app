@@ -7,7 +7,7 @@ const initialState = {
    loading: false,
    error: null,
    filter: { group: "all", status: "all", search: "" },
-   viewMode: "cards",
+   viewMode: "list",
 };
 
 const guestsSlice = createSlice({
