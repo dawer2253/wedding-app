@@ -53,6 +53,29 @@ export const selectFilteredGuests = createSelector(
    },
 );
 
+// Liczby osób dla budżetu (wydatki liczone "od gościa") — osoba towarzysząca
+// liczy się jako dodatkowy dorosły, dzieci osobno (waga zależy od wydatku)
+export const selectGuestHeadcounts = createSelector(
+   [selectAllGuests],
+   (guests) => {
+      const headcounts = {
+         all: { adults: 0, children: 0 },
+         confirmed: { adults: 0, children: 0 },
+      };
+      for (const guest of guests) {
+         const adults = (guest.isChild ? 0 : 1) + (guest.hasPlusOne ? 1 : 0);
+         const children = guest.isChild ? 1 : 0;
+         headcounts.all.adults += adults;
+         headcounts.all.children += children;
+         if (guest.rsvpStatus === "confirmed") {
+            headcounts.confirmed.adults += adults;
+            headcounts.confirmed.children += children;
+         }
+      }
+      return headcounts;
+   },
+);
+
 export const selectGuestStats = createSelector([selectAllGuests], (guests) => {
    const stats = {
       total: 0,

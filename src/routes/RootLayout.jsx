@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { toast } from "sonner";
 import { signOut } from "@/features/auth/api";
 import { fetchGuests } from "@/features/guests/api";
+import { fetchExpenses } from "@/features/budget/api";
 import { formatDate } from "@/lib/date";
 import { Users, Banknote, CirclePile, Settings, LogOut } from "lucide-react";
 
@@ -19,6 +20,7 @@ export default function RootLayout() {
    useEffect(() => {
       if (weddingId) {
          dispatch(fetchGuests(weddingId));
+         dispatch(fetchExpenses(weddingId));
       }
    }, [dispatch, weddingId]);
 
