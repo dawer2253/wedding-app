@@ -87,8 +87,13 @@ export const selectGuestStats = createSelector([selectAllGuests], (guests) => {
       withDietaryNotes: 0,
    };
    for (const guest of guests) {
-      stats.total += guest.hasPlusOne ? 2 : 1;
-      if (stats[guest.rsvpStatus] !== undefined) stats[guest.rsvpStatus] += 1;
+      // Osoba towarzysząca liczy się jako druga osoba — tak samo w sumie,
+      // jak i w licznikach statusów (dzieli status gościa)
+      const persons = guest.hasPlusOne ? 2 : 1;
+      stats.total += persons;
+      if (stats[guest.rsvpStatus] !== undefined) {
+         stats[guest.rsvpStatus] += persons;
+      }
       if (guest.hasPlusOne) stats.plusOnes += 1;
       if (guest.isChild) stats.children += 1;
       if (guest.dietaryNotes) stats.withDietaryNotes += 1;
