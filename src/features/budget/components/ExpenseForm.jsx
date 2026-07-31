@@ -1,5 +1,4 @@
 import { Controller, useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
 import Input from "@/components/Input";
 import Select from "@/components/Select";
 import { Button } from "@/components/ui/button";
@@ -63,10 +62,9 @@ export default function ExpenseForm({
    defaultValues,
    onSubmit,
    submitLabel,
+   onCancel,
    withInitialPayment = false,
-   cancelTo = "/budget",
 }) {
-   const navigate = useNavigate();
    const headcounts = useAppSelector(selectGuestHeadcounts);
    const {
       register,
@@ -295,11 +293,7 @@ export default function ExpenseForm({
          </Field>
 
          <div className="flex justify-end gap-2 pt-2">
-            <Button
-               type="button"
-               variant="outline"
-               onClick={() => navigate(cancelTo)}
-            >
+            <Button type="button" variant="outline" onClick={onCancel}>
                Anuluj
             </Button>
             <Button type="submit" disabled={isSubmitting}>

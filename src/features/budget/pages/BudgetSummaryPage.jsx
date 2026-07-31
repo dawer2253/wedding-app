@@ -1,5 +1,6 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Banknote, List, Plus, RotateCcw } from "lucide-react";
+import { withSheetParam } from "@/hooks/useSheetParams";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/empty";
 import BudgetTotals from "../components/BudgetTotals";
 import CategorySummary from "../components/CategorySummary";
+import ExpenseSheet from "../components/ExpenseSheet";
 import UpcomingPayments from "../components/UpcomingPayments";
 import { fetchExpenses } from "../api";
 import {
@@ -30,10 +32,11 @@ export default function BudgetSummaryPage() {
    const weddingId = useAppSelector(
       (state) => state.wedding.activeWedding?.id,
    );
+   const [searchParams] = useSearchParams();
 
    const addButton = (
       <Button asChild>
-         <Link to="/budget/new">
+         <Link to={{ search: withSheetParam(searchParams, "new") }}>
             <Plus />
             Dodaj wydatek
          </Link>
@@ -117,6 +120,7 @@ export default function BudgetSummaryPage() {
                </div>
             </>
          )}
+         <ExpenseSheet />
       </div>
    );
 }

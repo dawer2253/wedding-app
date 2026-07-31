@@ -1,7 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { CircleCheck, Pencil, Trash2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
+import { withSheetParam } from "@/hooks/useSheetParams";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { selectGuestHeadcounts } from "@/features/guests/selectors";
@@ -22,6 +23,7 @@ import {
 export default function ExpenseRow({ expense, onDelete }) {
    const dispatch = useAppDispatch();
    const headcounts = useAppSelector(selectGuestHeadcounts);
+   const [searchParams] = useSearchParams();
 
    const totalGrosze = expenseTotalGrosze(expense, headcounts);
    const paidGrosze = expensePaidGrosze(expense);
@@ -114,7 +116,11 @@ export default function ExpenseRow({ expense, onDelete }) {
                </Button>
             )}
             <Button asChild variant="ghost" size="icon" aria-label="Edytuj">
-               <Link to={`/budget/${expense.id}/edit`}>
+               <Link
+                  to={{
+                     search: withSheetParam(searchParams, "edit", expense.id),
+                  }}
+               >
                   <Pencil />
                </Link>
             </Button>

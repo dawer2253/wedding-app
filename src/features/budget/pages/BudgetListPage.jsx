@@ -15,8 +15,10 @@ import {
    EmptyMedia,
    EmptyTitle,
 } from "@/components/ui/empty";
+import { withSheetParam } from "@/hooks/useSheetParams";
 import BudgetFilters from "../components/BudgetFilters";
 import CategorySection from "../components/CategorySection";
+import ExpenseSheet from "../components/ExpenseSheet";
 import { fetchExpenses, removeExpense } from "../api";
 import {
    selectBudgetError,
@@ -54,7 +56,7 @@ export default function BudgetListPage() {
 
    const addButton = (
       <Button asChild>
-         <Link to="/budget/new">
+         <Link to={{ search: withSheetParam(searchParams, "new") }}>
             <Plus />
             Dodaj wydatek
          </Link>
@@ -143,6 +145,7 @@ export default function BudgetListPage() {
             </div>
          )}
 
+         <ExpenseSheet />
          <ConfirmDialog
             isOpen={!!expenseToDelete}
             onClose={() => setExpenseToDelete(null)}
