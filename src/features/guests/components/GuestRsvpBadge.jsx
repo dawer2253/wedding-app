@@ -21,7 +21,6 @@ export default function GuestRsvpBadge({ guest }) {
          await dispatch(
             updateGuest({ id: guest.id, changes: { rsvpStatus: status } }),
          ).unwrap();
-         toast.success(`Zmieniono status na „${RSVP_LABELS[status]}"`);
       } catch (err) {
          toast.error(err);
       }

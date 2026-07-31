@@ -15,3 +15,20 @@ export const RSVP_BADGE_CLASSES = {
 };
 
 export const NO_GROUP_LABEL = "Bez grupy";
+
+// Jedyne pola, które formularz gościa zna i może zapisywać — edycja buduje
+// defaultValues WYŁĄCZNIE z tej listy, żeby submit nie przemycał pól spoza
+// formularza (np. sortOrder) i nie nadpisywał ich stanem sprzed otwarcia
+export const GUEST_FORM_EMPTY_VALUES = {
+   firstName: "",
+   lastName: "",
+   group: "",
+   rsvpStatus: "pending",
+   hasPlusOne: false,
+   plusOneName: "",
+   isChild: false,
+   dietaryNotes: "",
+   phone: "",
+   email: "",
+   notes: "",
+};

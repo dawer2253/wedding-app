@@ -17,40 +17,23 @@ import {
 } from "@/components/ui/empty";
 import GuestStatsBar from "../components/GuestStatsBar";
 import GuestFilters from "../components/GuestFilters";
-import GuestCard from "../components/GuestCard";
 import GuestTable from "../components/GuestTable";
 import { fetchGuests, removeGuest } from "../api";
 import {
+   selectAllGuests,
    selectFilteredGuests,
    selectGuestsCount,
    selectGuestsError,
    selectGuestsLoading,
-   selectGuestsViewMode,
 } from "../selectors";
-import { NO_GROUP_LABEL } from "../constants";
-
-function groupGuests(guests) {
-   const grouped = {};
-   for (const guest of guests) {
-      const key = guest.group || NO_GROUP_LABEL;
-      (grouped[key] ??= []).push(guest);
-   }
-   return Object.keys(grouped)
-      .sort((a, b) => {
-         if (a === NO_GROUP_LABEL) return 1;
-         if (b === NO_GROUP_LABEL) return -1;
-         return a.localeCompare(b, "pl");
-      })
-      .map((name) => ({ name, guests: grouped[name] }));
-}
 
 export default function GuestListPage() {
    const dispatch = useAppDispatch();
    const guests = useAppSelector(selectFilteredGuests);
+   const allGuests = useAppSelector(selectAllGuests);
    const totalCount = useAppSelector(selectGuestsCount);
    const loading = useAppSelector(selectGuestsLoading);
    const error = useAppSelector(selectGuestsError);
-   const viewMode = useAppSelector(selectGuestsViewMode);
    const weddingId = useAppSelector(
       (state) => state.wedding.activeWedding?.id,
    );
@@ -85,9 +68,9 @@ export default function GuestListPage() {
                   <Skeleton key={i} className="h-18 rounded-xl" />
                ))}
             </div>
-            <div className="space-y-3">
-               {Array.from({ length: 4 }, (_, i) => (
-                  <Skeleton key={i} className="h-24 rounded-xl" />
+            <div className="space-y-2">
+               {Array.from({ length: 8 }, (_, i) => (
+                  <Skeleton key={i} className="h-10 rounded-lg" />
                ))}
             </div>
          </div>
@@ -145,30 +128,12 @@ export default function GuestListPage() {
                   </EmptyDescription>
                </EmptyHeader>
             </Empty>
-         ) : viewMode === "table" ? (
-            <GuestTable guests={guests} onDelete={setGuestToDelete} />
          ) : (
-            <div className="space-y-6">
-               {groupGuests(guests).map((section) => (
-                  <section key={section.name} className="space-y-3">
-                     <h3 className="text-base font-semibold text-muted-foreground">
-                        {section.name}{" "}
-                        <span className="font-normal">
-                           ({section.guests.length})
-                        </span>
-                     </h3>
-                     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                        {section.guests.map((guest) => (
-                           <GuestCard
-                              key={guest.id}
-                              guest={guest}
-                              onDelete={setGuestToDelete}
-                           />
-                        ))}
-                     </div>
-                  </section>
-               ))}
-            </div>
+            <GuestTable
+               guests={guests}
+               allGuests={allGuests}
+               onDelete={setGuestToDelete}
+            />
          )}
 
          <ConfirmDialog

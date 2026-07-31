@@ -9,7 +9,8 @@ export const fetchGuests = createAsyncThunk(
          .from("guests")
          .select("*")
          .eq("wedding_id", weddingId)
-         .order("created_at", { ascending: false });
+         .order("sort_order", { ascending: true, nullsFirst: false })
+         .order("created_at", { ascending: true });
       if (error) return rejectWithValue(error.message);
       return data.map(mapGuestFromDb);
    },
@@ -17,10 +18,18 @@ export const fetchGuests = createAsyncThunk(
 
 export const addGuest = createAsyncThunk(
    "guests/addGuest",
-   async (guest, { rejectWithValue }) => {
+   async (guest, { getState, rejectWithValue }) => {
+      // nowy gość trafia na koniec listy
+      const { items, ids } = getState().guests;
+      const maxSortOrder = ids.reduce(
+         (max, id) => Math.max(max, items[id]?.sortOrder ?? 0),
+         0,
+      );
       const { data, error } = await supabase
          .from("guests")
-         .insert(mapGuestToDb(guest))
+         .insert(
+            mapGuestToDb({ group: "", ...guest, sortOrder: maxSortOrder + 1 }),
+         )
          .select()
          .single();
       if (error) return rejectWithValue(error.message);

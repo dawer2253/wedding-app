@@ -17,6 +17,7 @@ import {
 import GuestForm from "../components/GuestForm";
 import { updateGuest } from "../api";
 import { selectGuestById, selectGuestsLoading } from "../selectors";
+import { GUEST_FORM_EMPTY_VALUES } from "../constants";
 
 export default function GuestEditPage() {
    const { id } = useParams();
@@ -75,7 +76,12 @@ export default function GuestEditPage() {
             <CardContent>
                <GuestForm
                   key={id}
-                  defaultValues={guest}
+                  defaultValues={Object.fromEntries(
+                     Object.keys(GUEST_FORM_EMPTY_VALUES).map((field) => [
+                        field,
+                        guest[field],
+                     ]),
+                  )}
                   onSubmit={handleSubmit}
                   submitLabel="Zapisz zmiany"
                />
