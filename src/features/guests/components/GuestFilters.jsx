@@ -1,25 +1,19 @@
 import { useEffect, useState } from "react";
-import { List, Search, Table } from "lucide-react";
+import { Search } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { Input } from "@/components/ui/input";
 import {
    NativeSelect,
    NativeSelectOption,
 } from "@/components/ui/native-select";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { setFilter, setViewMode } from "../guestsSlice";
-import {
-   selectGuestGroups,
-   selectGuestsFilter,
-   selectGuestsViewMode,
-} from "../selectors";
+import { setFilter } from "../guestsSlice";
+import { selectGuestGroups, selectGuestsFilter } from "../selectors";
 import { NO_GROUP_LABEL, RSVP_LABELS, RSVP_STATUSES } from "../constants";
 
 export default function GuestFilters() {
    const dispatch = useAppDispatch();
    const filter = useAppSelector(selectGuestsFilter);
    const groups = useAppSelector(selectGuestGroups);
-   const viewMode = useAppSelector(selectGuestsViewMode);
    const [search, setSearch] = useState(filter.search);
 
    useEffect(() => {
@@ -69,20 +63,6 @@ export default function GuestFilters() {
                </NativeSelectOption>
             ))}
          </NativeSelect>
-         <ToggleGroup
-            type="single"
-            variant="outline"
-            value={viewMode}
-            onValueChange={(value) => value && dispatch(setViewMode(value))}
-            className="ml-auto"
-         >
-            <ToggleGroupItem value="list" aria-label="Widok listy">
-               <List />
-            </ToggleGroupItem>
-            <ToggleGroupItem value="table" aria-label="Widok tabeli">
-               <Table />
-            </ToggleGroupItem>
-         </ToggleGroup>
       </div>
    );
 }

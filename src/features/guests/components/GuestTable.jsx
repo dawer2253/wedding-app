@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
-import { Check, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { Pencil, Trash2 } from "lucide-react";
+import { useAppDispatch } from "@/app/hooks";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import {
    Table,
    TableBody,
@@ -9,14 +13,59 @@ import {
    TableHeader,
    TableRow,
 } from "@/components/ui/table";
+import { updateGuest } from "../api";
 import { NO_GROUP_LABEL } from "../constants";
 import GuestRsvpBadge from "./GuestRsvpBadge";
 
-function BoolCell({ value }) {
-   return value ? (
-      <Check className="size-4 text-green-600 dark:text-green-400" />
-   ) : (
-      <span className="text-muted-foreground">—</span>
+function ToggleCell({ guest, field, label }) {
+   const dispatch = useAppDispatch();
+
+   async function handleChange(checked) {
+      try {
+         await dispatch(
+            updateGuest({ id: guest.id, changes: { [field]: checked === true } }),
+         ).unwrap();
+      } catch (err) {
+         toast.error(err);
+      }
+   }
+
+   return (
+      <Checkbox
+         checked={guest[field]}
+         onCheckedChange={handleChange}
+         aria-label={label}
+      />
+   );
+}
+
+function PhoneCell({ guest }) {
+   const dispatch = useAppDispatch();
+
+   async function save(event) {
+      const input = event.target;
+      const next = input.value.trim();
+      if (next === guest.phone) return;
+      try {
+         await dispatch(
+            updateGuest({ id: guest.id, changes: { phone: next } }),
+         ).unwrap();
+      } catch (err) {
+         toast.error(err);
+         input.value = guest.phone;
+      }
+   }
+
+   return (
+      <Input
+         key={guest.phone}
+         defaultValue={guest.phone}
+         onBlur={save}
+         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+         placeholder="dodaj numer"
+         type="tel"
+         className="h-7 w-36 border-transparent shadow-none hover:border-input"
+      />
    );
 }
 
@@ -28,8 +77,9 @@ export default function GuestTable({ guests, onDelete }) {
                <TableRow>
                   <TableHead>Gość</TableHead>
                   <TableHead>Grupa</TableHead>
-                  <TableHead>Os. tow.</TableHead>
-                  <TableHead>Dziecko</TableHead>
+                  <TableHead className="text-center">Os. tow.</TableHead>
+                  <TableHead className="text-center">Dziecko</TableHead>
+                  <TableHead>Telefon</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Akcje</TableHead>
                </TableRow>
@@ -37,7 +87,7 @@ export default function GuestTable({ guests, onDelete }) {
             <TableBody>
                {guests.map((guest) => (
                   <TableRow key={guest.id}>
-                     <TableCell className="font-medium">
+                     <TableCell className="py-1 font-medium">
                         {guest.firstName} {guest.lastName}
                         {guest.hasPlusOne && guest.plusOneName && (
                            <span className="block text-xs font-normal text-muted-foreground">
@@ -45,20 +95,31 @@ export default function GuestTable({ guests, onDelete }) {
                            </span>
                         )}
                      </TableCell>
-                     <TableCell className="text-muted-foreground">
+                     <TableCell className="py-1 text-muted-foreground">
                         {guest.group || NO_GROUP_LABEL}
                      </TableCell>
-                     <TableCell>
-                        <BoolCell value={guest.hasPlusOne} />
+                     <TableCell className="py-1 text-center">
+                        <ToggleCell
+                           guest={guest}
+                           field="hasPlusOne"
+                           label="Z osobą towarzyszącą"
+                        />
                      </TableCell>
-                     <TableCell>
-                        <BoolCell value={guest.isChild} />
+                     <TableCell className="py-1 text-center">
+                        <ToggleCell
+                           guest={guest}
+                           field="isChild"
+                           label="Dziecko"
+                        />
                      </TableCell>
-                     <TableCell>
+                     <TableCell className="py-1">
+                        <PhoneCell guest={guest} />
+                     </TableCell>
+                     <TableCell className="py-1">
                         <GuestRsvpBadge guest={guest} />
                      </TableCell>
-                     <TableCell className="text-right">
-                        <div className="inline-flex gap-1">
+                     <TableCell className="py-1 text-right">
+                        <div className="inline-flex gap-0.5">
                            <Button
                               asChild
                               variant="ghost"

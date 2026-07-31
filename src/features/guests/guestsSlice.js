@@ -7,7 +7,6 @@ const initialState = {
    loading: false,
    error: null,
    filter: { group: "all", status: "all", search: "" },
-   viewMode: "list",
 };
 
 const guestsSlice = createSlice({
@@ -16,9 +15,6 @@ const guestsSlice = createSlice({
    reducers: {
       setFilter(state, action) {
          state.filter = { ...state.filter, ...action.payload };
-      },
-      setViewMode(state, action) {
-         state.viewMode = action.payload;
       },
       resetGuests() {
          return initialState;
@@ -62,5 +58,5 @@ const guestsSlice = createSlice({
    },
 });
 
-export const { setFilter, setViewMode, resetGuests } = guestsSlice.actions;
+export const { setFilter, resetGuests } = guestsSlice.actions;
 export default guestsSlice.reducer;
