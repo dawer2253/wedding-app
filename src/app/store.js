@@ -10,7 +10,7 @@ export const store = configureStore({
       auth: authReducer,
       budget: budgetReducer,
       guests: guestsReducer,
-      vendor: vendorReducer,
+      vendors: vendorReducer,
       wedding: weddingReducer,
    },
 });
