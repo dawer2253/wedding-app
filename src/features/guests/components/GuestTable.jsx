@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Pencil, Trash2 } from "lucide-react";
@@ -63,84 +64,88 @@ function PhoneCell({ guest }) {
          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
          placeholder="dodaj numer"
          type="tel"
-         className="h-7 w-36 border-transparent shadow-none hover:border-input"
+         className="h-7 w-full border-transparent shadow-none hover:border-input"
       />
    );
 }
 
+// memo: klik w checkbox/status przerysowuje tylko ten jeden wiersz,
+// nie całą tabelę (przy ~120 gościach różnica jest odczuwalna)
+const GuestRow = memo(function GuestRow({ guest, onDelete }) {
+   return (
+      <TableRow>
+         <TableCell className="truncate py-1 font-medium">
+            {guest.firstName} {guest.lastName}
+            {guest.hasPlusOne && guest.plusOneName && (
+               <span className="block truncate text-xs font-normal text-muted-foreground">
+                  + {guest.plusOneName}
+               </span>
+            )}
+         </TableCell>
+         <TableCell className="truncate py-1 text-muted-foreground">
+            {guest.group || NO_GROUP_LABEL}
+         </TableCell>
+         <TableCell className="py-1">
+            <ToggleCell
+               guest={guest}
+               field="hasPlusOne"
+               label="Z osobą towarzyszącą"
+            />
+         </TableCell>
+         <TableCell className="py-1">
+            <ToggleCell guest={guest} field="isChild" label="Dziecko" />
+         </TableCell>
+         <TableCell className="py-1">
+            <PhoneCell guest={guest} />
+         </TableCell>
+         <TableCell className="py-1">
+            <GuestRsvpBadge guest={guest} />
+         </TableCell>
+         <TableCell className="py-1 text-right">
+            <div className="inline-flex gap-0.5">
+               <Button
+                  asChild
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Edytuj"
+               >
+                  <Link to={`/guests/${guest.id}/edit`}>
+                     <Pencil />
+                  </Link>
+               </Button>
+               <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Usuń"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => onDelete(guest)}
+               >
+                  <Trash2 />
+               </Button>
+            </div>
+         </TableCell>
+      </TableRow>
+   );
+});
+
 export default function GuestTable({ guests, onDelete }) {
    return (
       <div className="overflow-x-auto rounded-xl ring-1 ring-foreground/10">
-         <Table>
+         <Table className="w-full table-fixed">
             <TableHeader>
                <TableRow>
-                  <TableHead className="w-full">Gość</TableHead>
-                  <TableHead className="w-40">Grupa</TableHead>
-                  <TableHead className="w-24 text-center">Os. tow.</TableHead>
-                  <TableHead className="w-24 text-center">Dziecko</TableHead>
-                  <TableHead className="w-40">Telefon</TableHead>
-                  <TableHead className="w-36">Status</TableHead>
-                  <TableHead className="w-24 text-right">Akcje</TableHead>
+                  <TableHead className="w-[24%]">Gość</TableHead>
+                  <TableHead className="w-[14%]">Grupa</TableHead>
+                  <TableHead className="w-[9%] text-center">Os. tow.</TableHead>
+                  <TableHead className="w-[9%] text-center">Dziecko</TableHead>
+                  <TableHead className="w-[18%]">Telefon</TableHead>
+                  <TableHead className="w-[15%]">Status</TableHead>
+                  <TableHead className="w-[11%] text-right">Akcje</TableHead>
                </TableRow>
             </TableHeader>
             <TableBody>
                {guests.map((guest) => (
-                  <TableRow key={guest.id}>
-                     <TableCell className="py-1 font-medium">
-                        {guest.firstName} {guest.lastName}
-                        {guest.hasPlusOne && guest.plusOneName && (
-                           <span className="block text-xs font-normal text-muted-foreground">
-                              + {guest.plusOneName}
-                           </span>
-                        )}
-                     </TableCell>
-                     <TableCell className="py-1 text-muted-foreground">
-                        {guest.group || NO_GROUP_LABEL}
-                     </TableCell>
-                     <TableCell className="py-1 pr-2">
-                        <ToggleCell
-                           guest={guest}
-                           field="hasPlusOne"
-                           label="Z osobą towarzyszącą"
-                        />
-                     </TableCell>
-                     <TableCell className="py-1 pr-2">
-                        <ToggleCell
-                           guest={guest}
-                           field="isChild"
-                           label="Dziecko"
-                        />
-                     </TableCell>
-                     <TableCell className="py-1">
-                        <PhoneCell guest={guest} />
-                     </TableCell>
-                     <TableCell className="py-1">
-                        <GuestRsvpBadge guest={guest} />
-                     </TableCell>
-                     <TableCell className="py-1 text-right">
-                        <div className="inline-flex gap-0.5">
-                           <Button
-                              asChild
-                              variant="ghost"
-                              size="icon-sm"
-                              aria-label="Edytuj"
-                           >
-                              <Link to={`/guests/${guest.id}/edit`}>
-                                 <Pencil />
-                              </Link>
-                           </Button>
-                           <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              aria-label="Usuń"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => onDelete(guest)}
-                           >
-                              <Trash2 />
-                           </Button>
-                        </div>
-                     </TableCell>
-                  </TableRow>
+                  <GuestRow key={guest.id} guest={guest} onDelete={onDelete} />
                ))}
             </TableBody>
          </Table>
