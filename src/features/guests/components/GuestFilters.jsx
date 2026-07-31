@@ -25,19 +25,20 @@ export default function GuestFilters() {
 
    return (
       <div className="flex flex-wrap items-center gap-2">
-         <div className="relative">
+         <div className="relative w-full sm:w-56">
             <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
                value={search}
                onChange={(e) => setSearch(e.target.value)}
                placeholder="Szukaj gościa..."
-               className="w-56 pl-8"
+               className="w-full pl-8"
             />
          </div>
          <NativeSelect
             value={filter.group}
             onChange={(e) => dispatch(setFilter({ group: e.target.value }))}
             aria-label="Filtr grupy"
+            className="min-w-0 flex-1 sm:flex-none"
          >
             <NativeSelectOption value="all">Wszystkie grupy</NativeSelectOption>
             {groups.map((group) => (
@@ -53,6 +54,7 @@ export default function GuestFilters() {
             value={filter.status}
             onChange={(e) => dispatch(setFilter({ status: e.target.value }))}
             aria-label="Filtr statusu"
+            className="min-w-0 flex-1 sm:flex-none"
          >
             <NativeSelectOption value="all">
                Wszystkie statusy

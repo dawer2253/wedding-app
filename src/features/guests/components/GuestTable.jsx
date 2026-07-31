@@ -1,5 +1,5 @@
-import { memo, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -29,9 +29,14 @@ import {
    TableHeader,
    TableRow,
 } from "@/components/ui/table";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { addGuest, updateGuest } from "../api";
 import { NO_GROUP_LABEL } from "../constants";
 import GuestRsvpBadge from "./GuestRsvpBadge";
+
+// Poniżej md tabela składa się do dwóch kolumn (gość + status RSVP),
+// a tap w wiersz otwiera sheet edycji — reszta pól jest dostępna tam
+const DESKTOP_QUERY = "(min-width: 768px)";
 
 function ToggleCell({ guest, field, label }) {
    const dispatch = useAppDispatch();
@@ -90,34 +95,43 @@ function PhoneCell({ guest }) {
 const GuestRowContent = memo(function GuestRowContent({ guest, onDelete }) {
    return (
       <>
-         <TableCell className="truncate py-1 font-medium">
-            {guest.firstName} {guest.lastName}
+         <TableCell className="truncate py-3 font-medium md:py-1">
+            <span className="flex items-center gap-1.5">
+               <span className="truncate">
+                  {guest.firstName} {guest.lastName}
+               </span>
+               {guest.hasPlusOne && (
+                  <span className="shrink-0 rounded-full bg-muted px-1.5 text-[10px] font-semibold text-muted-foreground md:hidden">
+                     +1
+                  </span>
+               )}
+            </span>
             {guest.hasPlusOne && guest.plusOneName && (
                <span className="block truncate text-xs font-normal text-muted-foreground">
                   + {guest.plusOneName}
                </span>
             )}
          </TableCell>
-         <TableCell className="truncate py-1 text-muted-foreground">
+         <TableCell className="hidden truncate py-1 text-muted-foreground md:table-cell">
             {guest.group || NO_GROUP_LABEL}
          </TableCell>
-         <TableCell className="py-1">
+         <TableCell className="hidden py-1 md:table-cell">
             <ToggleCell
                guest={guest}
                field="hasPlusOne"
                label="Z osobą towarzyszącą"
             />
          </TableCell>
-         <TableCell className="py-1">
+         <TableCell className="hidden py-1 md:table-cell">
             <ToggleCell guest={guest} field="isChild" label="Dziecko" />
          </TableCell>
-         <TableCell className="py-1">
+         <TableCell className="hidden py-1 md:table-cell">
             <PhoneCell guest={guest} />
          </TableCell>
-         <TableCell className="py-1">
+         <TableCell className="py-3 md:py-1">
             <GuestRsvpBadge guest={guest} />
          </TableCell>
-         <TableCell className="py-1 text-right">
+         <TableCell className="hidden py-1 text-right md:table-cell">
             <div className="inline-flex gap-0.5">
                <Button
                   asChild
@@ -148,6 +162,7 @@ const GuestRowContent = memo(function GuestRowContent({ guest, onDelete }) {
 // Re-rendery wywoływane przez dnd-kit w trakcie przeciągania kosztują
 // tyle co jeden tr + button — komórki wyżej są odcięte przez memo
 const GuestRow = memo(function GuestRow({ guest, onDelete }) {
+   const navigate = useNavigate();
    const {
       attributes,
       listeners,
@@ -157,13 +172,26 @@ const GuestRow = memo(function GuestRow({ guest, onDelete }) {
       isDragging,
    } = useSortable({ id: guest.id });
 
+   // Na mobile wiersz nie ma kolumny akcji — tap otwiera sheet edycji.
+   // Tapnięcia w elementy interaktywne (checkbox, badge, input) pomijamy
+   function handleRowClick(event) {
+      if (window.matchMedia(DESKTOP_QUERY).matches) return;
+      // Dropdown statusu jest portalowany poza wiersz, ale React bąbelkuje
+      // zdarzenia przez drzewo komponentów — klik w pozycję menu (div,
+      // nie button) nie może otwierać edycji
+      if (!event.currentTarget.contains(event.target)) return;
+      if (event.target.closest("button, a, input")) return;
+      navigate({ search: `?edit=${guest.id}` });
+   }
+
    return (
       <TableRow
          ref={setNodeRef}
          style={{ transform: CSS.Translate.toString(transform), transition }}
          className={isDragging ? "relative z-10 bg-muted" : undefined}
+         onClick={handleRowClick}
       >
-         <TableCell className="py-1">
+         <TableCell className="hidden py-1 md:table-cell">
             <button
                type="button"
                {...attributes}
@@ -183,6 +211,10 @@ const GuestRow = memo(function GuestRow({ guest, onDelete }) {
 // i wraca focusem na pierwsze pole — można klepać gości seryjnie
 function QuickAddRow() {
    const dispatch = useAppDispatch();
+   // colSpan musi odpowiadać liczbie WIDOCZNYCH kolumn: przy table-fixed
+   // nadmiarowy colspan dokłada kolumny-widma, które zabierają szerokość
+   // kolumnie "Gość" (na mobile zostawało jej ~36px)
+   const isDesktop = useMediaQuery(DESKTOP_QUERY);
    const weddingId = useAppSelector(
       (state) => state.wedding.activeWedding?.id,
    );
@@ -220,15 +252,15 @@ function QuickAddRow() {
 
    return (
       <TableRow className="bg-muted/30 hover:bg-muted/30">
-         <TableCell className="py-1.5">
-            {saving ? (
-               <Spinner className="mx-auto size-4" />
-            ) : (
-               <Plus className="mx-auto size-4 text-muted-foreground" />
-            )}
-         </TableCell>
-         <TableCell className="py-1.5" colSpan={2}>
-            <div className="flex gap-2">
+         {/* Jedna komórka przez całą szerokość tabeli — flex układa
+             zawartość niezależnie od siatki kolumn */}
+         <TableCell className="py-1.5" colSpan={isDesktop ? 8 : 2}>
+            <div className="flex flex-wrap items-center gap-2">
+               {saving ? (
+                  <Spinner className="size-4 shrink-0" />
+               ) : (
+                  <Plus className="size-4 shrink-0 text-muted-foreground" />
+               )}
                {/* readOnly zamiast disabled — disabled input ignoruje .focus(),
                    więc kursor nie wracałby na pole po zapisie Enterem */}
                <Input
@@ -238,7 +270,7 @@ function QuickAddRow() {
                   onKeyDown={handleKeyDown}
                   placeholder="Imię"
                   readOnly={saving}
-                  className="h-7"
+                  className="h-8 min-w-24 flex-1 md:h-7 md:max-w-40"
                />
                <Input
                   value={lastName}
@@ -246,12 +278,8 @@ function QuickAddRow() {
                   onKeyDown={handleKeyDown}
                   placeholder="Nazwisko"
                   readOnly={saving}
-                  className="h-7"
+                  className="h-8 min-w-24 flex-1 md:h-7 md:max-w-40"
                />
-            </div>
-         </TableCell>
-         <TableCell className="py-1.5" colSpan={5}>
-            <div className="flex items-center gap-3">
                <Button
                   variant="outline"
                   size="sm"
@@ -260,7 +288,7 @@ function QuickAddRow() {
                >
                   Dodaj
                </Button>
-               <span className="text-xs text-muted-foreground">
+               <span className="hidden text-xs text-muted-foreground lg:inline">
                   Enter, aby dodać — resztę uzupełnisz w wierszu
                </span>
             </div>
@@ -269,10 +297,16 @@ function QuickAddRow() {
    );
 }
 
-const ESTIMATED_ROW_HEIGHT = 37;
+// Desktop: py-1 (~37px); mobile: py-3 + większy touch target (~53px)
+const ROW_HEIGHT_DESKTOP = 37;
+const ROW_HEIGHT_MOBILE = 53;
 
 export default function GuestTable({ guests, allGuests, onDelete }) {
    const dispatch = useAppDispatch();
+   const isDesktop = useMediaQuery(DESKTOP_QUERY);
+   const estimatedRowHeight = isDesktop
+      ? ROW_HEIGHT_DESKTOP
+      : ROW_HEIGHT_MOBILE;
    const sensors = useSensors(
       useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
    );
@@ -285,9 +319,15 @@ export default function GuestTable({ guests, allGuests, onDelete }) {
    const virtualizer = useVirtualizer({
       count: guests.length,
       getScrollElement: () => wrapperRef.current,
-      estimateSize: () => ESTIMATED_ROW_HEIGHT,
+      estimateSize: () => estimatedRowHeight,
       overscan: 10,
    });
+
+   // Zmiana breakpointu = inna wysokość wiersza — bez tego wirtualizator
+   // trzyma zmierzone rozmiary ze starego układu
+   useEffect(() => {
+      virtualizer.measure();
+   }, [estimatedRowHeight, virtualizer]);
    const virtualItems = virtualizer.getVirtualItems();
    const paddingTop = virtualItems.length ? virtualItems[0].start : 0;
    const paddingBottom = virtualItems.length
@@ -341,7 +381,7 @@ export default function GuestTable({ guests, allGuests, onDelete }) {
    return (
       <div
          ref={wrapperRef}
-         className="max-h-[70vh] overflow-auto rounded-xl ring-1 ring-foreground/10"
+         className="max-h-[65dvh] overflow-auto rounded-xl ring-1 ring-foreground/10 md:max-h-[70vh]"
       >
          <DndContext
             sensors={sensors}
@@ -351,18 +391,24 @@ export default function GuestTable({ guests, allGuests, onDelete }) {
             <Table className="w-full table-fixed">
                <TableHeader className="sticky top-0 z-10 bg-background">
                   <TableRow>
-                     <TableHead className="w-8" />
-                     <TableHead className="w-[22%]">Gość</TableHead>
-                     <TableHead className="w-[13%]">Grupa</TableHead>
-                     <TableHead className="w-[8%] text-center">
+                     <TableHead className="hidden w-8 md:table-cell" />
+                     <TableHead className="md:w-[22%]">Gość</TableHead>
+                     <TableHead className="hidden md:table-cell md:w-[13%]">
+                        Grupa
+                     </TableHead>
+                     <TableHead className="hidden text-center md:table-cell md:w-[8%]">
                         Os. tow.
                      </TableHead>
-                     <TableHead className="w-[8%] text-center">
+                     <TableHead className="hidden text-center md:table-cell md:w-[8%]">
                         Dziecko
                      </TableHead>
-                     <TableHead className="w-[17%]">Telefon</TableHead>
-                     <TableHead className="w-[14%]">Status</TableHead>
-                     <TableHead className="w-[10%] text-right">Akcje</TableHead>
+                     <TableHead className="hidden md:table-cell md:w-[17%]">
+                        Telefon
+                     </TableHead>
+                     <TableHead className="w-30 md:w-[14%]">Status</TableHead>
+                     <TableHead className="hidden text-right md:table-cell md:w-[10%]">
+                        Akcje
+                     </TableHead>
                   </TableRow>
                </TableHeader>
                <TableBody>

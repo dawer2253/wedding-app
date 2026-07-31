@@ -10,6 +10,13 @@ import { fetchExpenses } from "@/features/budget/api";
 import { formatDate } from "@/lib/date";
 import { Users, Banknote, CirclePile, Settings, LogOut } from "lucide-react";
 
+const NAV_ITEMS = [
+   { to: "/guests", label: "Goście", icon: Users },
+   { to: "/budget", label: "Budżet", icon: Banknote },
+   { to: "/vendors", label: "Dostawcy", icon: CirclePile },
+   { to: "/settings", label: "Ustawienia", icon: Settings },
+];
+
 export default function RootLayout() {
    const activeWedding = useAppSelector((state) => state.wedding.activeWedding);
    const isLoading = useAppSelector((state) => state.wedding.loading);
@@ -51,9 +58,14 @@ export default function RootLayout() {
             : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
       }`;
 
+   const bottomNavLinkClass = ({ isActive }) =>
+      `flex flex-col items-center gap-0.5 py-2 text-[11px] transition-colors ${
+         isActive ? "font-medium text-primary" : "text-muted-foreground"
+      }`;
+
    return (
       <div className="flex min-h-screen">
-         <aside className="flex w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
+         <aside className="hidden w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
             <div className="flex flex-col gap-1 border-b border-sidebar-border p-6">
                <p className="text-lg font-semibold">{activeWedding.name}</p>
                {activeWedding.weddingDate && (
@@ -63,22 +75,12 @@ export default function RootLayout() {
                )}
             </div>
             <nav className="flex-1 space-y-1 p-4">
-               <NavLink to="/guests" className={navLinkClass}>
-                  <Users size={18} />
-                  <span>Goście</span>
-               </NavLink>
-               <NavLink to="/budget" className={navLinkClass}>
-                  <Banknote size={18} />
-                  <span>Budżet</span>
-               </NavLink>
-               <NavLink to="/vendors" className={navLinkClass}>
-                  <CirclePile size={18} />
-                  <span>Dostawcy</span>
-               </NavLink>
-               <NavLink to="/settings" className={navLinkClass}>
-                  <Settings size={18} />
-                  <span>Ustawienia</span>
-               </NavLink>
+               {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
+                  <NavLink key={to} to={to} className={navLinkClass}>
+                     <Icon size={18} />
+                     <span>{label}</span>
+                  </NavLink>
+               ))}
             </nav>
             <div className="border-t border-sidebar-border p-4">
                <Button
@@ -91,9 +93,40 @@ export default function RootLayout() {
                </Button>
             </div>
          </aside>
-         <main className="flex-1 p-6">
-            <Outlet />
-         </main>
+
+         <div className="flex min-w-0 flex-1 flex-col">
+            <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b bg-background/95 px-4 py-2.5 backdrop-blur md:hidden">
+               <div className="min-w-0">
+                  <p className="truncate font-semibold">{activeWedding.name}</p>
+                  {activeWedding.weddingDate && (
+                     <p className="truncate text-xs text-muted-foreground">
+                        {formatDate(activeWedding.weddingDate)}
+                     </p>
+                  )}
+               </div>
+               <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Wyloguj"
+                  onClick={handleLogout}
+               >
+                  <LogOut />
+               </Button>
+            </header>
+
+            <main className="flex-1 p-4 pb-24 md:p-6">
+               <Outlet />
+            </main>
+         </div>
+
+         <nav className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+            {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
+               <NavLink key={to} to={to} className={bottomNavLinkClass}>
+                  <Icon size={20} />
+                  <span>{label}</span>
+               </NavLink>
+            ))}
+         </nav>
       </div>
    );
 }

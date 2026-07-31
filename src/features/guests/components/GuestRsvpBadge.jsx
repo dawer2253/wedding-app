@@ -30,7 +30,7 @@ export default function GuestRsvpBadge({ guest }) {
       <DropdownMenu>
          <DropdownMenuTrigger
             className={cn(
-               "inline-flex h-5 shrink-0 cursor-pointer items-center gap-1 rounded-4xl px-2 text-xs font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+               "inline-flex h-7 shrink-0 cursor-pointer items-center gap-1 rounded-4xl px-2.5 text-xs font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 md:h-5 md:px-2",
                RSVP_BADGE_CLASSES[guest.rsvpStatus],
             )}
          >

@@ -64,7 +64,7 @@ export default function GuestListPage() {
       return (
          <div className="space-y-6">
             <PageHeader title="Goście" />
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+            <div className="grid grid-cols-3 gap-2 md:gap-3 lg:grid-cols-6">
                {Array.from({ length: 6 }, (_, i) => (
                   <Skeleton key={i} className="h-18 rounded-xl" />
                ))}

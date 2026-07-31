@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { toast } from "sonner";
-import { UserX } from "lucide-react";
+import { Trash2, UserX } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import { Button } from "@/components/ui/button";
 import {
    Sheet,
    SheetContent,
@@ -18,7 +21,7 @@ import {
 } from "@/components/ui/empty";
 import { useSheetParams } from "@/hooks/useSheetParams";
 import GuestForm from "./GuestForm";
-import { addGuest, updateGuest } from "../api";
+import { addGuest, removeGuest, updateGuest } from "../api";
 import { selectGuestById, selectGuestsLoading } from "../selectors";
 import { GUEST_FORM_EMPTY_VALUES } from "../constants";
 
@@ -35,6 +38,7 @@ export default function GuestSheet() {
    );
    const loading = useAppSelector(selectGuestsLoading);
    const open = isNew || Boolean(editId);
+   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
    async function handleCreate(data) {
       try {
@@ -53,6 +57,20 @@ export default function GuestSheet() {
          close();
       } catch (err) {
          toast.error(err);
+      }
+   }
+
+   // Na mobile tabela nie ma kolumny akcji — usuwanie musi być
+   // dostępne z poziomu sheeta edycji
+   async function handleDelete() {
+      try {
+         await dispatch(removeGuest(editId)).unwrap();
+         toast.success("Usunięto gościa");
+         close();
+      } catch (err) {
+         toast.error(err);
+      } finally {
+         setConfirmingDelete(false);
       }
    }
 
@@ -78,18 +96,30 @@ export default function GuestSheet() {
                   />
                )}
                {editId && guest && (
-                  <GuestForm
-                     key={editId}
-                     defaultValues={Object.fromEntries(
-                        Object.keys(GUEST_FORM_EMPTY_VALUES).map((field) => [
-                           field,
-                           guest[field],
-                        ]),
-                     )}
-                     onSubmit={handleUpdate}
-                     onCancel={close}
-                     submitLabel="Zapisz zmiany"
-                  />
+                  <>
+                     <GuestForm
+                        key={editId}
+                        defaultValues={Object.fromEntries(
+                           Object.keys(GUEST_FORM_EMPTY_VALUES).map((field) => [
+                              field,
+                              guest[field],
+                           ]),
+                        )}
+                        onSubmit={handleUpdate}
+                        onCancel={close}
+                        submitLabel="Zapisz zmiany"
+                     />
+                     <div className="mt-6 border-t pt-4">
+                        <Button
+                           variant="outline"
+                           className="w-full text-destructive hover:text-destructive"
+                           onClick={() => setConfirmingDelete(true)}
+                        >
+                           <Trash2 />
+                           Usuń gościa
+                        </Button>
+                     </div>
+                  </>
                )}
                {editId && !guest && loading && (
                   <Skeleton className="h-96 rounded-xl" />
@@ -110,6 +140,18 @@ export default function GuestSheet() {
                )}
             </div>
          </SheetContent>
+         <ConfirmDialog
+            isOpen={confirmingDelete}
+            onClose={() => setConfirmingDelete(false)}
+            onConfirm={handleDelete}
+            title="Usunąć gościa?"
+            message={
+               guest
+                  ? `${guest.firstName} ${guest.lastName} zostanie trwale usunięty z listy.`
+                  : ""
+            }
+            confirmLabel="Usuń"
+         />
       </Sheet>
    );
 }
