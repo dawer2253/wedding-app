@@ -9,4 +9,8 @@ export default defineConfig({
    resolve: {
       alias: { "@": path.resolve(import.meta.dirname, "./src") },
    },
+   server: {
+      // pozwala uruchomić drugą instancję na porcie przydzielonym z zewnątrz
+      port: Number(process.env.PORT) || 5173,
+   },
 });
