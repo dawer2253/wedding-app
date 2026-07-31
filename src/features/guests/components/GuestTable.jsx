@@ -35,6 +35,7 @@ function ToggleCell({ guest, field, label }) {
          checked={guest[field]}
          onCheckedChange={handleChange}
          aria-label={label}
+         className="mx-auto"
       />
    );
 }
@@ -43,8 +44,7 @@ function PhoneCell({ guest }) {
    const dispatch = useAppDispatch();
 
    async function save(event) {
-      const input = event.target;
-      const next = input.value.trim();
+      const next = event.target.value.trim();
       if (next === guest.phone) return;
       try {
          await dispatch(
@@ -52,7 +52,6 @@ function PhoneCell({ guest }) {
          ).unwrap();
       } catch (err) {
          toast.error(err);
-         input.value = guest.phone;
       }
    }
 
@@ -75,13 +74,13 @@ export default function GuestTable({ guests, onDelete }) {
          <Table>
             <TableHeader>
                <TableRow>
-                  <TableHead>Gość</TableHead>
-                  <TableHead>Grupa</TableHead>
-                  <TableHead className="text-center">Os. tow.</TableHead>
-                  <TableHead className="text-center">Dziecko</TableHead>
-                  <TableHead>Telefon</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Akcje</TableHead>
+                  <TableHead className="w-full">Gość</TableHead>
+                  <TableHead className="w-40">Grupa</TableHead>
+                  <TableHead className="w-24 text-center">Os. tow.</TableHead>
+                  <TableHead className="w-24 text-center">Dziecko</TableHead>
+                  <TableHead className="w-40">Telefon</TableHead>
+                  <TableHead className="w-36">Status</TableHead>
+                  <TableHead className="w-24 text-right">Akcje</TableHead>
                </TableRow>
             </TableHeader>
             <TableBody>
@@ -98,14 +97,14 @@ export default function GuestTable({ guests, onDelete }) {
                      <TableCell className="py-1 text-muted-foreground">
                         {guest.group || NO_GROUP_LABEL}
                      </TableCell>
-                     <TableCell className="py-1 text-center">
+                     <TableCell className="py-1 pr-2">
                         <ToggleCell
                            guest={guest}
                            field="hasPlusOne"
                            label="Z osobą towarzyszącą"
                         />
                      </TableCell>
-                     <TableCell className="py-1 text-center">
+                     <TableCell className="py-1 pr-2">
                         <ToggleCell
                            guest={guest}
                            field="isChild"
