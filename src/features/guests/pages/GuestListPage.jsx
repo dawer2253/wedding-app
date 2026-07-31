@@ -20,6 +20,7 @@ import GuestFilters from "../components/GuestFilters";
 import GuestTable from "../components/GuestTable";
 import { fetchGuests, removeGuest } from "../api";
 import {
+   selectAllGuests,
    selectFilteredGuests,
    selectGuestsCount,
    selectGuestsError,
@@ -29,6 +30,7 @@ import {
 export default function GuestListPage() {
    const dispatch = useAppDispatch();
    const guests = useAppSelector(selectFilteredGuests);
+   const allGuests = useAppSelector(selectAllGuests);
    const totalCount = useAppSelector(selectGuestsCount);
    const loading = useAppSelector(selectGuestsLoading);
    const error = useAppSelector(selectGuestsError);
@@ -127,7 +129,11 @@ export default function GuestListPage() {
                </EmptyHeader>
             </Empty>
          ) : (
-            <GuestTable guests={guests} onDelete={setGuestToDelete} />
+            <GuestTable
+               guests={guests}
+               allGuests={allGuests}
+               onDelete={setGuestToDelete}
+            />
          )}
 
          <ConfirmDialog

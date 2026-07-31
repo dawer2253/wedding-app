@@ -7,21 +7,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import { RSVP_LABELS, RSVP_STATUSES } from "../constants";
-
-const EMPTY_VALUES = {
-   firstName: "",
-   lastName: "",
-   group: "",
-   rsvpStatus: "pending",
-   hasPlusOne: false,
-   plusOneName: "",
-   isChild: false,
-   dietaryNotes: "",
-   phone: "",
-   email: "",
-   notes: "",
-};
+import {
+   GUEST_FORM_EMPTY_VALUES,
+   RSVP_LABELS,
+   RSVP_STATUSES,
+} from "../constants";
 
 export default function GuestForm({ defaultValues, onSubmit, submitLabel }) {
    const navigate = useNavigate();
@@ -31,7 +21,9 @@ export default function GuestForm({ defaultValues, onSubmit, submitLabel }) {
       control,
       watch,
       formState: { errors, isSubmitting },
-   } = useForm({ defaultValues: { ...EMPTY_VALUES, ...defaultValues } });
+   } = useForm({
+      defaultValues: { ...GUEST_FORM_EMPTY_VALUES, ...defaultValues },
+   });
 
    const hasPlusOne = watch("hasPlusOne");
 

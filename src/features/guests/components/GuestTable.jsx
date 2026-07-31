@@ -1,4 +1,4 @@
-import { memo, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -10,7 +10,6 @@ import {
 } from "@dnd-kit/core";
 import {
    SortableContext,
-   arrayMove,
    useSortable,
    verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
@@ -20,6 +19,7 @@ import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import {
    Table,
@@ -229,13 +229,15 @@ function QuickAddRow() {
          </TableCell>
          <TableCell className="py-1.5" colSpan={2}>
             <div className="flex gap-2">
+               {/* readOnly zamiast disabled — disabled input ignoruje .focus(),
+                   więc kursor nie wracałby na pole po zapisie Enterem */}
                <Input
                   ref={firstNameRef}
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Imię"
-                  disabled={saving}
+                  readOnly={saving}
                   className="h-7"
                />
                <Input
@@ -243,7 +245,7 @@ function QuickAddRow() {
                   onChange={(e) => setLastName(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Nazwisko"
-                  disabled={saving}
+                  readOnly={saving}
                   className="h-7"
                />
             </div>
@@ -267,39 +269,70 @@ function QuickAddRow() {
    );
 }
 
-export default function GuestTable({ guests, onDelete }) {
+const INITIAL_ROWS = 30;
+const ROWS_PER_CHUNK = 60;
+
+export default function GuestTable({ guests, allGuests, onDelete }) {
    const dispatch = useAppDispatch();
    const sensors = useSensors(
       useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
    );
 
+   // Progresywny render: mount pokazuje pierwsze wiersze od razu, reszta
+   // dokłada się w porcjach w kolejnych klatkach. Bez tego wejście w zakładkę
+   // blokowało UI na czas synchronicznego renderu ~120 ciężkich wierszy.
+   const [visibleCount, setVisibleCount] = useState(INITIAL_ROWS);
+   useEffect(() => {
+      if (visibleCount >= guests.length) return;
+      const timeout = setTimeout(
+         () => setVisibleCount((count) => count + ROWS_PER_CHUNK),
+         16,
+      );
+      return () => clearTimeout(timeout);
+   }, [visibleCount, guests.length]);
+   const visibleGuests = guests.slice(0, visibleCount);
+
    // Stabilna tożsamość listy id: nowa tablica powstaje tylko gdy zmieni się
    // kolejność/skład, a nie przy każdej edycji pola gościa. Bez tego
    // SortableContext dostawał nową wartość przy każdym kliknięciu i wymuszał
    // re-render wszystkich wierszy z pominięciem memo.
-   const itemIdsKey = guests.map((g) => g.id).join("\n");
+   const itemIdsKey = visibleGuests.map((g) => g.id).join("\n");
+   /* eslint-disable react-hooks/preserve-manual-memoization -- memoizacja po
+      kluczu treści jest celowa (patrz komentarz wyżej); React Compiler i tak
+      nie działa w buildzie tego projektu */
    const itemIds = useMemo(
       () => (itemIdsKey ? itemIdsKey.split("\n") : []),
       [itemIdsKey],
    );
+   /* eslint-enable react-hooks/preserve-manual-memoization */
 
-   // zapis kolejności "ułamkowo": nowa pozycja dostaje wartość między
-   // sąsiadami — jeden UPDATE zamiast przenumerowania całej listy
+   // Zapis kolejności "ułamkowo": przeciągnięty gość dostaje wartość między
+   // celem a jego PRAWDZIWYM sąsiadem z pełnej listy (allGuests) — jeden
+   // UPDATE, bez kolizji z wierszami ukrytymi przez aktywne filtry
    function handleDragEnd({ active, over }) {
       if (!over || active.id === over.id) return;
-      const oldIndex = guests.findIndex((g) => g.id === active.id);
-      const newIndex = guests.findIndex((g) => g.id === over.id);
-      if (oldIndex === -1 || newIndex === -1) return;
+      const fromIndex = guests.findIndex((g) => g.id === active.id);
+      const toIndex = guests.findIndex((g) => g.id === over.id);
+      if (fromIndex === -1 || toIndex === -1) return;
 
-      const moved = arrayMove(guests, oldIndex, newIndex);
-      const prev = moved[newIndex - 1]?.sortOrder ?? null;
-      const next = moved[newIndex + 1]?.sortOrder ?? null;
+      // ciągnięcie w dół = ląduje ZA celem, w górę = PRZED celem
+      const placeAfter = fromIndex < toIndex;
+      const fullIndex = allGuests.findIndex((g) => g.id === over.id);
+      if (fullIndex === -1) return;
+      const overOrder = allGuests[fullIndex].sortOrder;
+      if (overOrder == null) return;
+
+      const neighbor = placeAfter
+         ? allGuests[fullIndex + 1]
+         : allGuests[fullIndex - 1];
+      if (neighbor?.id === active.id) return;
 
       let sortOrder;
-      if (prev == null && next == null) return;
-      if (prev == null) sortOrder = next - 1;
-      else if (next == null) sortOrder = prev + 1;
-      else sortOrder = (prev + next) / 2;
+      if (!neighbor || neighbor.sortOrder == null) {
+         sortOrder = placeAfter ? overOrder + 1 : overOrder - 1;
+      } else {
+         sortOrder = (overOrder + neighbor.sortOrder) / 2;
+      }
 
       dispatch(updateGuest({ id: active.id, changes: { sortOrder } }))
          .unwrap()
@@ -335,7 +368,7 @@ export default function GuestTable({ guests, onDelete }) {
                      items={itemIds}
                      strategy={verticalListSortingStrategy}
                   >
-                     {guests.map((guest) => (
+                     {visibleGuests.map((guest) => (
                         <GuestRow
                            key={guest.id}
                            guest={guest}
@@ -343,6 +376,16 @@ export default function GuestTable({ guests, onDelete }) {
                         />
                      ))}
                   </SortableContext>
+                  {visibleCount < guests.length && (
+                     <TableRow>
+                        <TableCell colSpan={8} className="py-2">
+                           <div className="space-y-2">
+                              <Skeleton className="h-5 w-full" />
+                              <Skeleton className="h-5 w-full" />
+                           </div>
+                        </TableCell>
+                     </TableRow>
+                  )}
                   <QuickAddRow />
                </TableBody>
             </Table>

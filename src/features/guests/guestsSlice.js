@@ -47,25 +47,42 @@ const guestsSlice = createSlice({
             }
             state.items[guest.id] = guest;
          })
-         // updateGuest — optymistycznie: zmiana od razu, rollback przy błędzie
+         // updateGuest — optymistycznie: zmiana od razu, rollback przy błędzie.
+         // Backup i rollback obejmują TYLKO pola z danego requestu — dwa
+         // równoległe update'y tego samego gościa (np. telefon + checkbox)
+         // nie nadpisują sobie nawzajem potwierdzonych już zmian
          .addCase(updateGuest.pending, (state, action) => {
             const { id, changes } = action.meta.arg;
             const existing = state.items[id];
             if (!existing) return;
-            state.optimisticBackups[action.meta.requestId] = existing;
+            const fields = {};
+            for (const key of Object.keys(changes)) {
+               fields[key] = existing[key];
+            }
+            state.optimisticBackups[action.meta.requestId] = { id, fields };
             state.items[id] = { ...existing, ...changes };
          })
          .addCase(updateGuest.fulfilled, (state, action) => {
+            const { id, changes } = action.meta.arg;
             const guest = action.payload;
-            state.items[guest.id] = guest;
             delete state.optimisticBackups[action.meta.requestId];
+            const existing = state.items[id];
+            // gość mógł zostać w międzyczasie optymistycznie usunięty —
+            // nie wskrzeszamy go poza listą ids
+            if (!existing) return;
+            const patch = { updatedAt: guest.updatedAt };
+            for (const key of Object.keys(changes)) {
+               patch[key] = guest[key];
+            }
+            state.items[id] = { ...existing, ...patch };
          })
          .addCase(updateGuest.rejected, (state, action) => {
             const backup = state.optimisticBackups[action.meta.requestId];
-            if (backup && state.items[backup.id]) {
-               state.items[backup.id] = backup;
-            }
             delete state.optimisticBackups[action.meta.requestId];
+            if (!backup) return;
+            const existing = state.items[backup.id];
+            if (!existing) return;
+            state.items[backup.id] = { ...existing, ...backup.fields };
          })
          // removeGuest — optymistycznie: wiersz znika od razu, wraca przy błędzie
          .addCase(removeGuest.pending, (state, action) => {
