@@ -22,7 +22,7 @@ export default function RootLayout() {
       }
    }, [dispatch, weddingId]);
 
-   if (isLoading)
+   if (isLoading && !activeWedding)
       return (
          <div className="flex min-h-screen items-center justify-center">
             <Spinner className="size-10 text-primary" />

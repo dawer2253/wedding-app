@@ -11,7 +11,7 @@ import { fetchUserWedding } from "./features/wedding/api";
 
 function App() {
    const isLoading = useAppSelector((state) => state.auth.loading);
-   const user = useAppSelector((state) => state.auth.user);
+   const userId = useAppSelector((state) => state.auth.user?.id);
 
    const dispatch = useAppDispatch();
 
@@ -27,10 +27,10 @@ function App() {
    }, [dispatch]);
 
    useEffect(() => {
-      if (user) {
+      if (userId) {
          dispatch(fetchUserWedding());
       }
-   }, [dispatch, user]);
+   }, [dispatch, userId]);
 
    if (isLoading)
       return (
