@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -15,11 +15,12 @@ import {
    verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Pencil, Trash2 } from "lucide-react";
-import { useAppDispatch } from "@/app/hooks";
+import { GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import {
    Table,
    TableBody,
@@ -28,7 +29,7 @@ import {
    TableHeader,
    TableRow,
 } from "@/components/ui/table";
-import { updateGuest } from "../api";
+import { addGuest, updateGuest } from "../api";
 import { NO_GROUP_LABEL } from "../constants";
 import GuestRsvpBadge from "./GuestRsvpBadge";
 
@@ -178,6 +179,94 @@ const GuestRow = memo(function GuestRow({ guest, onDelete }) {
    );
 });
 
+// Szybkie dodawanie na dole tabeli: imię + nazwisko, Enter zapisuje
+// i wraca focusem na pierwsze pole — można klepać gości seryjnie
+function QuickAddRow() {
+   const dispatch = useAppDispatch();
+   const weddingId = useAppSelector(
+      (state) => state.wedding.activeWedding?.id,
+   );
+   const [firstName, setFirstName] = useState("");
+   const [lastName, setLastName] = useState("");
+   const [saving, setSaving] = useState(false);
+   const firstNameRef = useRef(null);
+
+   const canSubmit = firstName.trim() && lastName.trim() && !saving;
+
+   async function submit() {
+      if (!canSubmit) return;
+      setSaving(true);
+      try {
+         await dispatch(
+            addGuest({
+               firstName: firstName.trim(),
+               lastName: lastName.trim(),
+               weddingId,
+            }),
+         ).unwrap();
+         setFirstName("");
+         setLastName("");
+         firstNameRef.current?.focus();
+      } catch (err) {
+         toast.error(err);
+      } finally {
+         setSaving(false);
+      }
+   }
+
+   function handleKeyDown(e) {
+      if (e.key === "Enter") submit();
+   }
+
+   return (
+      <TableRow className="bg-muted/30 hover:bg-muted/30">
+         <TableCell className="py-1.5">
+            {saving ? (
+               <Spinner className="mx-auto size-4" />
+            ) : (
+               <Plus className="mx-auto size-4 text-muted-foreground" />
+            )}
+         </TableCell>
+         <TableCell className="py-1.5" colSpan={2}>
+            <div className="flex gap-2">
+               <Input
+                  ref={firstNameRef}
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Imię"
+                  disabled={saving}
+                  className="h-7"
+               />
+               <Input
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Nazwisko"
+                  disabled={saving}
+                  className="h-7"
+               />
+            </div>
+         </TableCell>
+         <TableCell className="py-1.5" colSpan={5}>
+            <div className="flex items-center gap-3">
+               <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={submit}
+                  disabled={!canSubmit}
+               >
+                  Dodaj
+               </Button>
+               <span className="text-xs text-muted-foreground">
+                  Enter, aby dodać — resztę uzupełnisz w wierszu
+               </span>
+            </div>
+         </TableCell>
+      </TableRow>
+   );
+}
+
 export default function GuestTable({ guests, onDelete }) {
    const dispatch = useAppDispatch();
    const sensors = useSensors(
@@ -254,6 +343,7 @@ export default function GuestTable({ guests, onDelete }) {
                         />
                      ))}
                   </SortableContext>
+                  <QuickAddRow />
                </TableBody>
             </Table>
          </DndContext>
