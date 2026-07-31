@@ -4,9 +4,8 @@ import { mapWeddingFromDb } from "./mappers";
 
 export const fetchUserWedding = createAsyncThunk(
    "wedding/fetchUserWedding",
-   async (_, { rejectWithValue }) => {
-      const response = await supabase.auth.getUser();
-      const userId = response.data.user?.id;
+   async (_, { getState, rejectWithValue }) => {
+      const userId = getState().auth.user?.id;
       if (!userId) return rejectWithValue("Nie jesteś zalogowany!");
 
       const { data, error } = await supabase
@@ -22,9 +21,8 @@ export const fetchUserWedding = createAsyncThunk(
 
 export const createWedding = createAsyncThunk(
    "wedding/createWedding",
-   async (weddingData, { rejectWithValue }) => {
-      const response = await supabase.auth.getUser();
-      const userId = response.data.user?.id;
+   async (weddingData, { getState, rejectWithValue }) => {
+      const userId = getState().auth.user?.id;
       if (!userId) return rejectWithValue("Nie jesteś zalogowany!");
 
       const { data: inviteCode, error: inviteCodeError } = await supabase.rpc(
