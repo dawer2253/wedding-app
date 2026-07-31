@@ -1,17 +1,27 @@
+import { useEffect } from "react";
 import { Outlet, Navigate, NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { toast } from "sonner";
 import { signOut } from "@/features/auth/api";
+import { fetchGuests } from "@/features/guests/api";
 import { formatDate } from "@/lib/date";
 import { Users, Banknote, CirclePile, Settings, LogOut } from "lucide-react";
 
 export default function RootLayout() {
    const activeWedding = useAppSelector((state) => state.wedding.activeWedding);
    const isLoading = useAppSelector((state) => state.wedding.loading);
+   const weddingId = activeWedding?.id;
 
    const dispatch = useAppDispatch();
+
+   useEffect(() => {
+      if (weddingId) {
+         dispatch(fetchGuests(weddingId));
+      }
+   }, [dispatch, weddingId]);
+
    if (isLoading)
       return (
          <div className="flex min-h-screen items-center justify-center">
