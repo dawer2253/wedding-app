@@ -1,5 +1,13 @@
 import Input from "@/components/Input";
-import Button from "@/components/Button";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import {
+   Card,
+   CardContent,
+   CardDescription,
+   CardHeader,
+   CardTitle,
+} from "@/components/ui/card";
 import { Link } from "react-router-dom";
 
 import { useAppDispatch } from "@/app/hooks";
@@ -33,29 +41,32 @@ export default function ResetPasswordPage() {
    } = useForm();
 
    return (
-      <div className="max-w-md mx-auto mt-20 p-6 bg-white">
-         <Link
-            className="text-sm text-rose-600 hover:text-rose-800"
-            to="/login"
-         >
-            &#8592; Wróć do strony logowania
-         </Link>
-         <div className="flex justify-center my-6">
-            <h1>Zresetuj hasło</h1>
-         </div>
-         <form onSubmit={handleSubmit(onEmailSubmit)} className="space-y-4">
-            <Input
-               label="E-mail"
-               type="email"
-               {...register("email", { required: "E-mail wymagany" })}
-               error={errors.email?.message}
-            />
-            <div className="flex justify-end ">
-               <Button disabled={isSubmitting} variant="primary">
-                  Zresetuj hasło
+      <Card className="w-full max-w-md">
+         <CardHeader>
+            <CardTitle className="text-xl">Zresetuj hasło</CardTitle>
+            <CardDescription>
+               Podaj e-mail, a wyślemy Ci link do zresetowania hasła
+            </CardDescription>
+         </CardHeader>
+         <CardContent>
+            <form onSubmit={handleSubmit(onEmailSubmit)} className="space-y-4">
+               <Input
+                  label="E-mail"
+                  type="email"
+                  {...register("email", { required: "E-mail wymagany" })}
+                  error={errors.email?.message}
+               />
+               <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting && <Spinner />}
+                  Wyślij link
                </Button>
-            </div>
-         </form>
-      </div>
+            </form>
+            <p className="mt-6 text-center text-sm">
+               <Link to="/login" className="text-primary hover:underline">
+                  &#8592; Wróć do logowania
+               </Link>
+            </p>
+         </CardContent>
+      </Card>
    );
 }

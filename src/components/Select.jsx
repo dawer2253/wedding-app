@@ -1,3 +1,10 @@
+import { useId } from "react";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import {
+   NativeSelect,
+   NativeSelectOption,
+} from "@/components/ui/native-select";
+
 export default function Select({
    label,
    id,
@@ -6,24 +13,28 @@ export default function Select({
    error,
    ...props
 }) {
+   const generatedId = useId();
+   const fieldId = id ?? generatedId;
+
    return (
-      <div className="flex flex-col gap-1">
-         <label className="text-sm font-medium text-slate-700" htmlFor={id}>
-            {label}
-         </label>
-         <select
-            className={`${error ? "border-red-500" : "border-slate-300"} bg-white w-full border py-2 px-3 rounded-md focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-colors`}
-            id={id}
+      <Field data-invalid={!!error}>
+         {label && <FieldLabel htmlFor={fieldId}>{label}</FieldLabel>}
+         <NativeSelect
+            className="w-full"
+            id={fieldId}
+            aria-invalid={!!error}
             {...props}
          >
-            {placeholder && <option value="">{placeholder}</option>}
+            {placeholder && (
+               <NativeSelectOption value="">{placeholder}</NativeSelectOption>
+            )}
             {options?.map((option) => (
-               <option key={option.value} value={option.value}>
+               <NativeSelectOption key={option.value} value={option.value}>
                   {option.label}
-               </option>
+               </NativeSelectOption>
             ))}
-         </select>
-         {error && <p className="text-sm text-red-600">{error}</p>}
-      </div>
+         </NativeSelect>
+         {error && <FieldError>{error}</FieldError>}
+      </Field>
    );
 }

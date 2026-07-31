@@ -4,7 +4,9 @@ export default function PageHeader({ title, subtitle, action }) {
          <div className="space-y-2">
             <h1>{title}</h1>
             {subtitle && (
-               <p className="text-slate-500 text-sm font-medium">{subtitle}</p>
+               <p className="text-muted-foreground text-sm font-medium">
+                  {subtitle}
+               </p>
             )}
          </div>
          {action}

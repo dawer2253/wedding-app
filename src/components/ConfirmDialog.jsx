@@ -1,5 +1,13 @@
-import Modal from "./Modal";
-import Button from "./Button";
+import {
+   AlertDialog,
+   AlertDialogAction,
+   AlertDialogCancel,
+   AlertDialogContent,
+   AlertDialogDescription,
+   AlertDialogFooter,
+   AlertDialogHeader,
+   AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ConfirmDialog({
    isOpen,
@@ -7,19 +15,23 @@ export default function ConfirmDialog({
    onConfirm,
    title,
    message,
-   confirmLabel,
+   confirmLabel = "Potwierdź",
+   variant = "destructive",
 }) {
    return (
-      <Modal isOpen={isOpen} onClose={onClose} title={title}>
-         <p>{message}</p>
-         <div className="flex justify-end gap-2 mt-6">
-            <Button variant="secondary" onClick={onClose}>
-               Anuluj
-            </Button>
-            <Button variant="primary" onClick={onConfirm}>
-               {confirmLabel}
-            </Button>
-         </div>
-      </Modal>
+      <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+         <AlertDialogContent>
+            <AlertDialogHeader>
+               <AlertDialogTitle>{title}</AlertDialogTitle>
+               <AlertDialogDescription>{message}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+               <AlertDialogCancel>Anuluj</AlertDialogCancel>
+               <AlertDialogAction variant={variant} onClick={onConfirm}>
+                  {confirmLabel}
+               </AlertDialogAction>
+            </AlertDialogFooter>
+         </AlertDialogContent>
+      </AlertDialog>
    );
 }

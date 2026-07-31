@@ -9,5 +9,9 @@ export default function AuthLayout() {
       return <Navigate to="/" replace />;
    }
 
-   return <Outlet />;
+   return (
+      <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+         <Outlet />
+      </div>
+   );
 }
