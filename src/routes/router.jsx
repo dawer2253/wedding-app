@@ -61,4 +61,5 @@ export const router = createBrowserRouter([
       ],
    },
    { path: "*", element: <NotFoundPage /> },
-]);
+   // na GitHub Pages appka żyje pod /wedding-app/ (Vite wstrzykuje base jako BASE_URL)
+], { basename: import.meta.env.BASE_URL.replace(/\/$/, "") });

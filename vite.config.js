@@ -6,6 +6,8 @@ import process from "node:process";
 
 // https://vite.dev/config/
 export default defineConfig({
+   // GitHub Pages serwuje appkę spod /wedding-app/ — CI ustawia DEPLOY_BASE
+   base: process.env.DEPLOY_BASE || "/",
    plugins: [react(), tailwindcss()],
    resolve: {
       alias: { "@": path.resolve(import.meta.dirname, "./src") },
