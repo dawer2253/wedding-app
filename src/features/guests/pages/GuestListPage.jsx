@@ -18,6 +18,7 @@ import {
 import GuestStatsBar from "../components/GuestStatsBar";
 import GuestFilters from "../components/GuestFilters";
 import GuestTable from "../components/GuestTable";
+import GuestSheet from "../components/GuestSheet";
 import { fetchGuests, removeGuest } from "../api";
 import {
    selectAllGuests,
@@ -52,7 +53,7 @@ export default function GuestListPage() {
 
    const addButton = (
       <Button asChild>
-         <Link to="/guests/new">
+         <Link to={{ search: "?new=1" }}>
             <Plus />
             Dodaj gościa
          </Link>
@@ -136,6 +137,7 @@ export default function GuestListPage() {
             />
          )}
 
+         <GuestSheet />
          <ConfirmDialog
             isOpen={!!guestToDelete}
             onClose={() => setGuestToDelete(null)}

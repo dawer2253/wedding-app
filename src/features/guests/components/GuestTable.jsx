@@ -125,7 +125,7 @@ const GuestRowContent = memo(function GuestRowContent({ guest, onDelete }) {
                   size="icon-sm"
                   aria-label="Edytuj"
                >
-                  <Link to={`/guests/${guest.id}/edit`}>
+                  <Link to={{ search: `?edit=${guest.id}` }}>
                      <Pencil />
                   </Link>
                </Button>

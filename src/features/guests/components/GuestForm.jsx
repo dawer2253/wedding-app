@@ -1,5 +1,4 @@
 import { Controller, useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
 import Input from "@/components/Input";
 import Select from "@/components/Select";
 import { Button } from "@/components/ui/button";
@@ -13,8 +12,12 @@ import {
    RSVP_STATUSES,
 } from "../constants";
 
-export default function GuestForm({ defaultValues, onSubmit, submitLabel }) {
-   const navigate = useNavigate();
+export default function GuestForm({
+   defaultValues,
+   onSubmit,
+   submitLabel,
+   onCancel,
+}) {
    const {
       register,
       handleSubmit,
@@ -116,11 +119,7 @@ export default function GuestForm({ defaultValues, onSubmit, submitLabel }) {
          </Field>
 
          <div className="flex justify-end gap-2 pt-2">
-            <Button
-               type="button"
-               variant="outline"
-               onClick={() => navigate("/guests")}
-            >
+            <Button type="button" variant="outline" onClick={onCancel}>
                Anuluj
             </Button>
             <Button type="submit" disabled={isSubmitting}>

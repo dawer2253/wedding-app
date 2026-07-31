@@ -38,7 +38,7 @@ export default function UpcomingPayments() {
                      return (
                         <Link
                            key={expense.id}
-                           to={`/budget/${expense.id}/edit`}
+                           to={{ search: `?edit=${expense.id}` }}
                            className="flex items-center gap-3 px-2 py-2.5 transition-colors hover:bg-muted first:rounded-t-lg last:rounded-b-lg"
                         >
                            <div className="min-w-0 flex-1">
