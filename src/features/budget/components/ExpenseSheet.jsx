@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { toast } from "sonner";
-import { ReceiptText } from "lucide-react";
+import { ReceiptText, Trash2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import { Button } from "@/components/ui/button";
 import {
    Sheet,
    SheetContent,
@@ -19,7 +22,7 @@ import {
 import { useSheetParams } from "@/hooks/useSheetParams";
 import ExpenseForm from "./ExpenseForm";
 import PaymentsSection from "./PaymentsSection";
-import { addExpense, updateExpense } from "../api";
+import { addExpense, removeExpense, updateExpense } from "../api";
 import { selectBudgetLoading, selectExpenseById } from "../selectors";
 import { EXPENSE_FORM_EMPTY_VALUES } from "../constants";
 
@@ -36,6 +39,7 @@ export default function ExpenseSheet() {
    );
    const loading = useAppSelector(selectBudgetLoading);
    const open = isNew || Boolean(editId);
+   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
    async function handleCreate(data) {
       try {
@@ -65,9 +69,26 @@ export default function ExpenseSheet() {
       }
    }
 
+   // Na mobile lista nie ma kolumny akcji — usuwanie musi być
+   // dostępne z poziomu sheeta edycji
+   async function handleDelete() {
+      try {
+         await dispatch(removeExpense(editId)).unwrap();
+         toast.success("Usunięto wydatek");
+         close();
+      } catch (err) {
+         toast.error(err);
+      } finally {
+         setConfirmingDelete(false);
+      }
+   }
+
    return (
       <Sheet open={open} onOpenChange={(value) => !value && close()}>
-         <SheetContent className="w-full gap-0 sm:max-w-xl">
+         {/* w-full! — bazowe data-[side=right]:w-3/4 sheeta ma wyższą
+             specyficzność niż zwykłe w-full; na mobile sheet ma być
+             pełnoekranowy, szerokość i tak ogranicza sm:max-w-xl */}
+         <SheetContent className="w-full! gap-0 sm:max-w-xl">
             <SheetHeader>
                <SheetTitle>
                   {editId ? "Edytuj wydatek" : "Nowy wydatek"}
@@ -107,6 +128,16 @@ export default function ExpenseSheet() {
                         submitLabel="Zapisz zmiany"
                      />
                      <PaymentsSection expense={expense} />
+                     <div className="border-t pt-4">
+                        <Button
+                           variant="outline"
+                           className="w-full text-destructive hover:text-destructive"
+                           onClick={() => setConfirmingDelete(true)}
+                        >
+                           <Trash2 />
+                           Usuń wydatek
+                        </Button>
+                     </div>
                   </>
                )}
                {editId && !expense && loading && (
@@ -128,6 +159,18 @@ export default function ExpenseSheet() {
                )}
             </div>
          </SheetContent>
+         <ConfirmDialog
+            isOpen={confirmingDelete}
+            onClose={() => setConfirmingDelete(false)}
+            onConfirm={handleDelete}
+            title="Usunąć wydatek?"
+            message={
+               expense
+                  ? `„${expense.name}" zostanie trwale usunięty razem z historią płatności.`
+                  : ""
+            }
+            confirmLabel="Usuń"
+         />
       </Sheet>
    );
 }

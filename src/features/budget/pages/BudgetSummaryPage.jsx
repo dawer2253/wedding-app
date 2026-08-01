@@ -47,7 +47,7 @@ export default function BudgetSummaryPage() {
       return (
          <div className="space-y-6">
             <PageHeader title="Budżet" />
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid grid-cols-3 gap-2 md:gap-3">
                {Array.from({ length: 3 }, (_, i) => (
                   <Skeleton key={i} className="h-18 rounded-xl" />
                ))}

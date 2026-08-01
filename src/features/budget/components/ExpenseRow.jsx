@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { CircleCheck, Pencil, Trash2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
@@ -20,8 +20,13 @@ import {
    isExpensePaid,
 } from "../money";
 
+// Poniżej md wiersz nie ma przycisków akcji — tap otwiera sheet edycji,
+// gdzie dostępne są płatności i usuwanie
+const DESKTOP_QUERY = "(min-width: 768px)";
+
 export default function ExpenseRow({ expense, onDelete }) {
    const dispatch = useAppDispatch();
+   const navigate = useNavigate();
    const headcounts = useAppSelector(selectGuestHeadcounts);
    const [searchParams] = useSearchParams();
 
@@ -58,8 +63,18 @@ export default function ExpenseRow({ expense, onDelete }) {
         ? "bg-red-500"
         : "bg-primary";
 
+   // Tapnięcia w elementy interaktywne (link, przycisk) pomijamy
+   function handleRowClick(event) {
+      if (window.matchMedia(DESKTOP_QUERY).matches) return;
+      if (event.target.closest("button, a, input")) return;
+      navigate({ search: withSheetParam(searchParams, "edit", expense.id) });
+   }
+
    return (
-      <div className="flex items-center gap-4 px-4 py-3">
+      <div
+         className="flex items-center gap-4 px-4 py-3"
+         onClick={handleRowClick}
+      >
          <div className="min-w-0 flex-1 space-y-1.5">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                <span className="truncate font-medium">{expense.name}</span>
@@ -108,7 +123,7 @@ export default function ExpenseRow({ expense, onDelete }) {
                />
             </div>
          </div>
-         <div className="flex shrink-0 items-center gap-1">
+         <div className="hidden shrink-0 items-center gap-1 md:flex">
             {remainingGrosze > 0 && (
                <Button variant="ghost" size="sm" onClick={handleMarkPaid}>
                   <CircleCheck />

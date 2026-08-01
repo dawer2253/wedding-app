@@ -30,13 +30,21 @@ export default function CategorySection({ category, expenses, onDelete }) {
             className="flex w-full items-center gap-3 px-4 py-3 text-left"
          >
             <Icon className="size-4.5 shrink-0 text-muted-foreground" />
-            <span className="font-medium">{CATEGORY_LABELS[category]}</span>
-            <Badge variant="secondary">{expenses.length}</Badge>
-            <span className="ml-auto text-sm text-muted-foreground">
-               <span className="font-medium text-foreground">
-                  {formatPLN(fromGrosze(paid))}
-               </span>{" "}
-               / {formatPLN(fromGrosze(planned))}
+            {/* Poniżej md suma schodzi pod nazwę kategorii — jeden wiersz
+                nie mieści nazwy, licznika i dwóch kwot na 375px */}
+            <span className="min-w-0 flex-1 md:flex md:items-center md:gap-3">
+               <span className="flex min-w-0 items-center gap-2">
+                  <span className="truncate font-medium">
+                     {CATEGORY_LABELS[category]}
+                  </span>
+                  <Badge variant="secondary">{expenses.length}</Badge>
+               </span>
+               <span className="block truncate text-xs text-muted-foreground md:ml-auto md:text-sm">
+                  <span className="font-medium text-foreground">
+                     {formatPLN(fromGrosze(paid))}
+                  </span>{" "}
+                  / {formatPLN(fromGrosze(planned))}
+               </span>
             </span>
             <ChevronDown
                className={`size-4 shrink-0 text-muted-foreground transition-transform ${

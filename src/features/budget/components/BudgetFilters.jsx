@@ -37,9 +37,14 @@ export default function BudgetFilters() {
             spacing={0}
             value={status}
             onValueChange={setStatus}
+            className="w-full sm:w-fit"
          >
             {STATUS_FILTERS.map((value) => (
-               <ToggleGroupItem key={value} value={value}>
+               <ToggleGroupItem
+                  key={value}
+                  value={value}
+                  className="flex-1 sm:flex-none"
+               >
                   {STATUS_FILTER_LABELS[value]}
                </ToggleGroupItem>
             ))}
