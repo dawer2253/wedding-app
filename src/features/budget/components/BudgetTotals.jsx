@@ -24,12 +24,18 @@ export default function BudgetTotals() {
    ];
 
    return (
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-3 gap-2 md:gap-3">
          {tiles.map((tile) => (
-            <Card key={tile.label} size="sm" className="gap-0.5 px-4">
-               <p className="text-xs text-muted-foreground">{tile.label}</p>
-               <p className={`text-2xl font-semibold ${tile.valueClass}`}>
-                  {formatPLN(tile.value)}
+            <Card key={tile.label} size="sm" className="gap-0.5 px-2.5 md:px-4">
+               <p className="truncate text-xs text-muted-foreground">
+                  {tile.label}
+               </p>
+               {/* pełne złote — kwota z groszami nie mieści się w kafelku
+                   na 375px; dokładne wartości są w wierszach wydatków */}
+               <p
+                  className={`truncate text-lg font-semibold md:text-2xl ${tile.valueClass}`}
+               >
+                  {formatPLN(Math.round(tile.value))}
                </p>
             </Card>
          ))}

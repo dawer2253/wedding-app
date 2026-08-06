@@ -122,35 +122,38 @@ export default function PaymentsSection({ expense }) {
                </div>
             )}
 
-            <form
-               onSubmit={handleAdd}
-               className="flex flex-wrap items-center gap-2"
-            >
-               <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="Kwota (zł)"
-                  className="w-28"
-                  value={amount}
-                  onChange={(event) => setAmount(event.target.value)}
-               />
-               <Input
-                  type="date"
-                  className="w-36"
-                  value={paidAt}
-                  onChange={(event) => setPaidAt(event.target.value)}
-               />
-               <Input
-                  placeholder="Notatka (np. zaliczka)"
-                  className="min-w-32 flex-1"
-                  value={note}
-                  onChange={(event) => setNote(event.target.value)}
-               />
-               <Button type="submit" variant="outline" disabled={saving}>
-                  {saving ? <Spinner /> : <Plus />}
-                  Dodaj
-               </Button>
+            {/* Dwa stałe rzędy zamiast flex-wrap — na wąskim sheecie pola
+                nie łamią się w przypadkowych miejscach */}
+            <form onSubmit={handleAdd} className="space-y-2">
+               <div className="flex gap-2">
+                  <Input
+                     type="number"
+                     step="0.01"
+                     min="0"
+                     placeholder="Kwota (zł)"
+                     className="min-w-0 flex-1"
+                     value={amount}
+                     onChange={(event) => setAmount(event.target.value)}
+                  />
+                  <Input
+                     type="date"
+                     className="min-w-0 flex-1"
+                     value={paidAt}
+                     onChange={(event) => setPaidAt(event.target.value)}
+                  />
+               </div>
+               <div className="flex gap-2">
+                  <Input
+                     placeholder="Notatka (np. zaliczka)"
+                     className="min-w-0 flex-1"
+                     value={note}
+                     onChange={(event) => setNote(event.target.value)}
+                  />
+                  <Button type="submit" variant="outline" disabled={saving}>
+                     {saving ? <Spinner /> : <Plus />}
+                     Dodaj
+                  </Button>
+               </div>
             </form>
          </CardContent>
          <CardFooter className="text-sm text-muted-foreground">

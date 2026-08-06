@@ -76,7 +76,10 @@ export default function GuestSheet() {
 
    return (
       <Sheet open={open} onOpenChange={(value) => !value && close()}>
-         <SheetContent className="w-full gap-0 sm:max-w-xl">
+         {/* w-full! — bazowe data-[side=right]:w-3/4 sheeta ma wyższą
+             specyficzność niż zwykłe w-full; na mobile sheet ma być
+             pełnoekranowy, szerokość i tak ogranicza sm:max-w-xl */}
+         <SheetContent className="w-full! gap-0 sm:max-w-xl">
             <SheetHeader>
                <SheetTitle>
                   {editId ? "Edytuj gościa" : "Nowy gość"}
