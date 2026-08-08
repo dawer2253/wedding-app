@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { signOut } from "@/features/auth/api";
 import { fetchGuests } from "@/features/guests/api";
 import { fetchExpenses } from "@/features/budget/api";
+import { fetchVendors } from "@/features/vendors/api";
 import { formatDate } from "@/lib/date";
 import { Users, Banknote, CirclePile, Settings, LogOut } from "lucide-react";
 
@@ -28,6 +29,7 @@ export default function RootLayout() {
       if (weddingId) {
          dispatch(fetchGuests(weddingId));
          dispatch(fetchExpenses(weddingId));
+         dispatch(fetchVendors(weddingId));
       }
    }, [dispatch, weddingId]);
 
