@@ -21,6 +21,10 @@ export function useSelectedVendorGuard() {
    const byRole = useAppSelector(selectVendorsByRole);
    const [conflict, setConflict] = useState(null);
    const resolveRef = useRef(null);
+   // ConfirmDialog woła onClose przy KAŻDYM zamknięciu — także tym wywołanym
+   // przyciskiem potwierdzenia. Bez tego znacznika „anuluj" rozwiązywałby
+   // promise zanim potwierdzenie zdąży zrobić swoje
+   const confirmedRef = useRef(false);
 
    const ensureSingleSelected = useCallback(
       (data, currentId = null) => {
@@ -30,6 +34,7 @@ export function useSelectedVendorGuard() {
                vendor.status === "selected" && vendor.id !== currentId,
          );
          if (!previous) return Promise.resolve(NO_CONFLICT);
+         confirmedRef.current = false;
          setConflict(previous);
          return new Promise((resolve) => {
             resolveRef.current = resolve;
@@ -44,6 +49,7 @@ export function useSelectedVendorGuard() {
    }
 
    async function handleConfirm() {
+      confirmedRef.current = true;
       const previous = conflict;
       setConflict(null);
       try {
@@ -74,8 +80,14 @@ export function useSelectedVendorGuard() {
    }
 
    function handleCancel() {
-      setConflict(null);
-      settle({ ok: false, undo: null });
+      // mikrozadanie — kolejność onClick vs onOpenChange w Radiksie nie jest
+      // gwarantowana, a po zakończeniu obsługi kliknięcia znacznik jest już
+      // ustawiony niezależnie od tego, który handler poszedł pierwszy
+      queueMicrotask(() => {
+         if (confirmedRef.current) return;
+         setConflict(null);
+         settle({ ok: false, undo: null });
+      });
    }
 
    const dialog = (
