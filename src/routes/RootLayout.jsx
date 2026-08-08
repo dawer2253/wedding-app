@@ -8,13 +8,22 @@ import { signOut } from "@/features/auth/api";
 import { fetchGuests } from "@/features/guests/api";
 import { fetchExpenses } from "@/features/budget/api";
 import { fetchVendors } from "@/features/vendors/api";
+import { fetchPlaylistItems } from "@/features/playlist/api";
 import { formatDate } from "@/lib/date";
-import { Users, Banknote, CirclePile, Settings, LogOut } from "lucide-react";
+import {
+   Users,
+   Banknote,
+   CirclePile,
+   ListMusic,
+   Settings,
+   LogOut,
+} from "lucide-react";
 
 const NAV_ITEMS = [
    { to: "/guests", label: "Goście", icon: Users },
    { to: "/budget", label: "Budżet", icon: Banknote },
    { to: "/vendors", label: "Dostawcy", icon: CirclePile },
+   { to: "/playlist", label: "Muzyka", icon: ListMusic },
    { to: "/settings", label: "Ustawienia", icon: Settings },
 ];
 
@@ -30,6 +39,7 @@ export default function RootLayout() {
          dispatch(fetchGuests(weddingId));
          dispatch(fetchExpenses(weddingId));
          dispatch(fetchVendors(weddingId));
+         dispatch(fetchPlaylistItems(weddingId));
       }
    }, [dispatch, weddingId]);
 
@@ -67,7 +77,7 @@ export default function RootLayout() {
 
    return (
       <div className="flex min-h-screen">
-         <aside className="hidden w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
+         <aside className="hidden w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex print:hidden">
             <div className="flex flex-col gap-1 border-b border-sidebar-border p-6">
                <p className="text-lg font-semibold">{activeWedding.name}</p>
                {activeWedding.weddingDate && (
@@ -97,7 +107,7 @@ export default function RootLayout() {
          </aside>
 
          <div className="flex min-w-0 flex-1 flex-col">
-            <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b bg-background/95 px-4 py-2.5 backdrop-blur md:hidden">
+            <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b bg-background/95 px-4 py-2.5 backdrop-blur md:hidden print:hidden">
                <div className="min-w-0">
                   <p className="truncate font-semibold">{activeWedding.name}</p>
                   {activeWedding.weddingDate && (
@@ -116,12 +126,12 @@ export default function RootLayout() {
                </Button>
             </header>
 
-            <main className="flex-1 p-4 pb-24 md:p-6">
+            <main className="flex-1 p-4 pb-24 md:p-6 print:p-0">
                <Outlet />
             </main>
          </div>
 
-         <nav className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+         <nav className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden print:hidden">
             {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
                <NavLink key={to} to={to} className={bottomNavLinkClass}>
                   <Icon size={20} />

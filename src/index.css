@@ -28,6 +28,22 @@
    }
 }
 
+/* Wydruk listy muzycznej dla DJ-a (/playlist/print) — jedyne miejsce w appce
+   przygotowane pod papier. Tokeny motywu siedzą w oklch i drukarki radzą
+   sobie z nimi różnie, więc wymuszamy klasyczny czarny na białym.
+   Chrome layoutu chowa print:hidden w RootLayout */
+@media print {
+   @page {
+      margin: 16mm;
+   }
+
+   html,
+   body {
+      background: white;
+      color: black;
+   }
+}
+
 @theme inline {
 
    --font-heading: var(--font-sans);
