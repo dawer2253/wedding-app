@@ -14,6 +14,8 @@ import VendorListPage from "@/features/vendors/pages/VendorListPage";
 import VendorNewPage from "@/features/vendors/pages/VendorNewPage";
 import VendorEditPage from "@/features/vendors/pages/VendorEditPage";
 import VendorComparePage from "@/features/vendors/pages/VendorComparePage";
+import PlaylistPage from "@/features/playlist/pages/PlaylistPage";
+import PlaylistPrintPage from "@/features/playlist/pages/PlaylistPrintPage";
 import NotFoundPage from "./NotFoundPage";
 
 export const router = createBrowserRouter([
@@ -55,6 +57,8 @@ export const router = createBrowserRouter([
                   path: "/vendors/compare/:role",
                   element: <VendorComparePage />,
                },
+               { path: "/playlist", element: <PlaylistPage /> },
+               { path: "/playlist/print", element: <PlaylistPrintPage /> },
                { path: "/settings", element: <WeddingSettingsPage /> },
             ],
          },

@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "@/features/auth/authSlice";
 import budgetReducer from "@/features/budget/budgetSlice";
 import guestsReducer from "@/features/guests/guestsSlice";
+import playlistReducer from "@/features/playlist/playlistSlice";
 import vendorReducer from "@/features/vendors/vendorsSlice";
 import weddingReducer from "@/features/wedding/weddingSlice";
 
@@ -10,6 +11,7 @@ export const store = configureStore({
       auth: authReducer,
       budget: budgetReducer,
       guests: guestsReducer,
+      playlist: playlistReducer,
       vendors: vendorReducer,
       wedding: weddingReducer,
    },
