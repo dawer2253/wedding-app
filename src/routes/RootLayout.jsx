@@ -77,7 +77,7 @@ export default function RootLayout() {
 
    return (
       <div className="flex min-h-screen">
-         <aside className="hidden w-64 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex print:hidden">
+         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex print:hidden">
             <div className="flex flex-col gap-1 border-b border-sidebar-border p-6">
                <p className="text-lg font-semibold">{activeWedding.name}</p>
                {activeWedding.weddingDate && (
@@ -86,7 +86,7 @@ export default function RootLayout() {
                   </p>
                )}
             </div>
-            <nav className="flex-1 space-y-1 p-4">
+            <nav className="flex-1 space-y-1 overflow-y-auto p-4">
                {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
                   <NavLink key={to} to={to} className={navLinkClass}>
                      <Icon size={18} />
